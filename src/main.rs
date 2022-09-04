@@ -9,7 +9,7 @@ fn main() {
 
     let native_options = eframe::NativeOptions::default();
     eframe::run_native(
-        "eframe template",
+        "im ok",
         native_options,
         Box::new(|cc| Box::new(im_ok::ImOk::new(cc))),
     );

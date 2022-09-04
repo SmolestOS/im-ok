@@ -1,3 +1,8 @@
+use bson::doc;
+use mongodb::{options::ClientOptions, sync::Client, Collection};
+
+use crate::db::Night;
+
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
@@ -8,14 +13,28 @@ pub struct ImOk {
     // this how you opt-out of serialization of a member
     #[serde(skip)]
     value: f32,
+
+    #[serde(skip)]
+    collection: mongodb::sync::Collection<Night>,
 }
 
 impl Default for ImOk {
     fn default() -> Self {
+        let mut client_options = ClientOptions::parse(
+            "mongodb+srv://pouts-os:smallest-os@im-ok.nzhnepa.mongodb.net/?retryWrites=true&w=majority",
+        )
+        .unwrap();
+        client_options.app_name = Some("Im Ok".to_string());
+
+        let client = Client::with_options(client_options).unwrap();
+
+        let collection = client.database("im_ok").collection::<Night>("nights");
+
         Self {
             // Example stuff:
             label: "Hello World!".to_owned(),
             value: 2.7,
+            collection,
         }
     }
 }
@@ -45,7 +64,11 @@ impl eframe::App for ImOk {
     /// Called each time the UI needs repainting, which may be many times per second.
     /// Put your widgets into a `SidePanel`, `TopPanel`, `CentralPanel`, `Window` or `Area`.
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        let Self { label, value } = self;
+        let Self {
+            label,
+            value,
+            collection,
+        } = self;
 
         // Examples of how to create different panels and windows.
         // Pick whichever suits you.
@@ -74,6 +97,15 @@ impl eframe::App for ImOk {
 
             ui.add(egui::Slider::new(value, 0.0..=10.0).text("value"));
             if ui.button("Increment").clicked() {
+                let captain_marvel = Night {
+                    id: None,
+                    location: "Captain Marvel".to_owned(),
+                    date: bson::DateTime::now(),
+                };
+
+                // Convert `captain_marvel` to a Bson instance:
+                let insert_res = collection.insert_one(captain_marvel, None).unwrap();
+                println!("{}", insert_res.inserted_id);
                 *value += 1.0;
             }
 
