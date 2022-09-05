@@ -1,5 +1,5 @@
 use bson::doc;
-use mongodb::{options::ClientOptions, sync::{Client, Collection}};
+use mongodb::{options::ClientOptions, sync::Client};
 
 use crate::db::Night;
 
