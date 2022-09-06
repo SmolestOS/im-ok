@@ -103,9 +103,9 @@ impl eframe::App for ImOk {
                     date: bson::DateTime::now(),
                 };
 
-                // Convert `captain_marvel` to a Bson instance:
-                let insert_res = collection.insert_one(captain_marvel, None).unwrap();
+                let insert_res = Night::create_night(collection, captain_marvel).unwrap();
                 println!("{}", insert_res.inserted_id);
+
                 *value += 1.0;
             }
 
