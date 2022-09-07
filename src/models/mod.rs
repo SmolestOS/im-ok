@@ -1,5 +1,5 @@
 #[allow(dead_code)]
-///An enum to track the level of Drunkness (0 - 5)
+/// An enum to track the level of Drunkness (0 - 5)
 pub enum Drunkness {
     Cool,
     LittleHead,
@@ -16,7 +16,7 @@ impl Default for Drunkness {
 }
 
 #[allow(dead_code)]
-///A struct to track the result of the night
+/// A struct to track the result of the night
 pub struct Craziness {
     drunkness: Drunkness,
     coitus: bool,
