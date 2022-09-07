@@ -2,4 +2,5 @@
 
 mod app;
 mod db;
+mod models;
 pub use app::ImOk;
