@@ -7,7 +7,7 @@ pub enum Drunkness {
     _ImOk,
 }
 
-impl Default for Drunkness{
+impl Default for Drunkness {
     fn default() -> Self {
         Drunkness::Cool
     }
@@ -24,7 +24,7 @@ pub struct Craziness {
 
 impl Default for Craziness {
     fn default() -> Self {
-        Craziness{
+        Craziness {
             drunkness: Drunkness::Cool,
             coitus: false,
             drive: false,
