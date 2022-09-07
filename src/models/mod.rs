@@ -1,4 +1,5 @@
 #[allow(dead_code)]
+///An enum to track the level of Drunkness (0 - 5)
 pub enum Drunkness {
     Cool,
     LittleHead,
@@ -15,6 +16,7 @@ impl Default for Drunkness {
 }
 
 #[allow(dead_code)]
+///A struct to track the result of the night
 pub struct Craziness {
     drunkness: Drunkness,
     coitus: bool,
@@ -27,7 +29,7 @@ pub struct Craziness {
 impl Default for Craziness {
     fn default() -> Self {
         Craziness {
-            drunkness: Drunkness::Cool,
+            drunkness: Drunkness::default(),
             coitus: false,
             drive: false,
             talked_2_ex: false,
