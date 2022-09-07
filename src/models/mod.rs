@@ -1,10 +1,10 @@
 pub enum Drunkness {
-    pub Cool,
-    pub LittleHead,
-    pub Bream,
-    pub Gnat,
-    pub Ant,
-    pub ImOk,
+    Cool,
+    _LittleHead,
+    _Bream,
+    _Gnat,
+    _Ant,
+    _ImOk,
 }
 
 impl Default for Drunkness{
