@@ -1,10 +1,11 @@
+#[allow(dead_code)]
 pub enum Drunkness {
     Cool,
-    _LittleHead,
-    _Bream,
-    _Gnat,
-    _Ant,
-    _ImOk,
+    LittleHead,
+    Bream,
+    Gnat,
+    Ant,
+    ImOk,
 }
 
 impl Default for Drunkness {
@@ -13,13 +14,14 @@ impl Default for Drunkness {
     }
 }
 
+#[allow(dead_code)]
 pub struct Craziness {
-    pub drunkness: Drunkness,
-    pub coitus: bool,
-    pub drive: bool,
-    pub talked_2_ex: bool,
-    //pub date,
-    pub location: String,
+    drunkness: Drunkness,
+    coitus: bool,
+    drive: bool,
+    talked_2_ex: bool,
+    // TODO: date field,
+    location: String,
 }
 
 impl Default for Craziness {
