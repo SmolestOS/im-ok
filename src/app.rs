@@ -145,16 +145,16 @@ impl eframe::App for ImOk {
             egui::ComboBox::from_label("Select level of drunkness")
                 .selected_text(format!("{:?}", craziness.drunkness))
                 .show_ui(ui, |ui| {
-                    ui.selectable_value(&mut craziness.drunkness, Drunkness::Cool, "Droseros");
+                    ui.selectable_value(&mut craziness.drunkness, Drunkness::Cool, "Cool");
                     ui.selectable_value(
                         &mut craziness.drunkness,
                         Drunkness::LittleHead,
-                        "Kefalakis",
+                        "LittleHead",
                     );
-                    ui.selectable_value(&mut craziness.drunkness, Drunkness::Bream, "Tsipouras");
-                    ui.selectable_value(&mut craziness.drunkness, Drunkness::Gnat, "Sknipas");
-                    ui.selectable_value(&mut craziness.drunkness, Drunkness::Ant, "Murmigki");
-                    ui.selectable_value(&mut craziness.drunkness, Drunkness::ImOk, "Kala eimai");
+                    ui.selectable_value(&mut craziness.drunkness, Drunkness::Bream, "Bream");
+                    ui.selectable_value(&mut craziness.drunkness, Drunkness::Gnat, "Gnat");
+                    ui.selectable_value(&mut craziness.drunkness, Drunkness::Ant, "Ant");
+                    ui.selectable_value(&mut craziness.drunkness, Drunkness::ImOk, "ImOk");
                 });
 
             ui.checkbox(&mut craziness.coitus, "Coitus");
