@@ -2,6 +2,7 @@ use bson::doc;
 use mongodb::{options::ClientOptions, sync::Client};
 
 use crate::db::Night;
+use crate::models::{Craziness, Drunkness, User};
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -16,6 +17,10 @@ pub struct ImOk {
 
     #[serde(skip)]
     collection: mongodb::sync::Collection<Night>,
+    #[serde(skip)]
+    craziness: Craziness,
+    #[serde(skip)]
+    other_city: String,
 }
 
 impl Default for ImOk {
@@ -35,6 +40,8 @@ impl Default for ImOk {
             label: "Hello World!".to_owned(),
             value: 2.7,
             collection,
+            craziness: Craziness::default(),
+            other_city: String::new(),
         }
     }
 }
@@ -68,6 +75,8 @@ impl eframe::App for ImOk {
             label,
             value,
             collection,
+            craziness,
+            other_city,
         } = self;
 
         // Examples of how to create different panels and windows.
@@ -127,12 +136,43 @@ impl eframe::App for ImOk {
         egui::CentralPanel::default().show(ctx, |ui| {
             // The central panel the region left after adding TopPanel's and SidePanel's
 
-            ui.heading("eframe template");
-            ui.hyperlink("https://github.com/emilk/eframe_template");
-            ui.add(egui::github_link_file!(
-                "https://github.com/emilk/eframe_template/blob/master/",
-                "Source code."
-            ));
+            egui::ComboBox::from_label("Select user")
+                .selected_text(format!("{:?}", craziness.user))
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(&mut craziness.user, User::Lostsaka, "Lostsaka");
+                    ui.selectable_value(&mut craziness.user, User::Gkasma, "Gkasma");
+                });
+            egui::ComboBox::from_label("Select level of drunkness")
+                .selected_text(format!("{:?}", craziness.drunkness))
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(&mut craziness.drunkness, Drunkness::Cool, "Cool");
+                    ui.selectable_value(
+                        &mut craziness.drunkness,
+                        Drunkness::LittleHead,
+                        "LittleHead",
+                    );
+                    ui.selectable_value(&mut craziness.drunkness, Drunkness::Bream, "Bream");
+                    ui.selectable_value(&mut craziness.drunkness, Drunkness::Gnat, "Gnat");
+                    ui.selectable_value(&mut craziness.drunkness, Drunkness::Ant, "Ant");
+                    ui.selectable_value(&mut craziness.drunkness, Drunkness::ImOk, "ImOk");
+                });
+
+            ui.checkbox(&mut craziness.coitus, "Coitus");
+            ui.checkbox(&mut craziness.drive, "Driven");
+            ui.checkbox(&mut craziness.talked_2x, "Talked_2x");
+            ui.radio_value(&mut craziness.location, "Athens".to_string(), "Athens");
+            ui.radio_value(
+                &mut craziness.location,
+                "Korinthos".to_string(),
+                "Korinthos",
+            );
+
+            ui.radio_value(&mut craziness.location, "Other".to_string(), "Other");
+            if craziness.location == *"Other".to_string() {
+                ui.label("Enter your city: ");
+                ui.text_edit_singleline(other_city);
+            }
+
             egui::warn_if_debug_build(ui);
         });
 
