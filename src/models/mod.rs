@@ -44,7 +44,7 @@ pub struct Craziness {
 
 impl Default for Craziness {
     fn default() -> Self {
-        Craziness {
+        Self {
             user: User::default(),
             drunkness: Drunkness::default(),
             coitus: false,
