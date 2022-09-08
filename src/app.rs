@@ -20,7 +20,7 @@ pub struct ImOk {
     #[serde(skip)]
     craziness: Craziness,
     #[serde(skip)]
-    label_2: String,
+    other_city: String,
 }
 
 impl Default for ImOk {
@@ -41,7 +41,7 @@ impl Default for ImOk {
             value: 2.7,
             collection,
             craziness: Craziness::default(),
-            label_2: "Enter your city".to_owned(),
+            other_city: String::new(),
         }
     }
 }
@@ -76,7 +76,7 @@ impl eframe::App for ImOk {
             value,
             collection,
             craziness,
-            label_2,
+            other_city,
         } = self;
 
         // Examples of how to create different panels and windows.
@@ -146,24 +146,32 @@ impl eframe::App for ImOk {
                 .selected_text(format!("{:?}", craziness.drunkness))
                 .show_ui(ui, |ui| {
                     ui.selectable_value(&mut craziness.drunkness, Drunkness::Cool, "Droseros");
-                    ui.selectable_value(&mut craziness.drunkness, Drunkness::LittleHead, "Kefalakis",
+                    ui.selectable_value(
+                        &mut craziness.drunkness,
+                        Drunkness::LittleHead,
+                        "Kefalakis",
                     );
                     ui.selectable_value(&mut craziness.drunkness, Drunkness::Bream, "Tsipouras");
                     ui.selectable_value(&mut craziness.drunkness, Drunkness::Gnat, "Sknipas");
                     ui.selectable_value(&mut craziness.drunkness, Drunkness::Ant, "Murmigki");
                     ui.selectable_value(&mut craziness.drunkness, Drunkness::ImOk, "Kala eimai");
                 });
+
             ui.checkbox(&mut craziness.coitus, "Coitus");
             ui.checkbox(&mut craziness.drive, "Driven");
             ui.checkbox(&mut craziness.talked_2x, "Talked_2x");
             ui.radio_value(&mut craziness.location, "Athens".to_string(), "Athens");
-            ui.radio_value(&mut craziness.location, "Korinthos".to_string(), "Korinthos");
-            ui.radio_value(&mut craziness.location, "Other".to_string(), "Other");
-            if craziness.location == "Other".to_string() {
-                ui.label("Enter your city: ");
-                ui.text_edit_singleline(label_2);
-            }
+            ui.radio_value(
+                &mut craziness.location,
+                "Korinthos".to_string(),
+                "Korinthos",
+            );
 
+            ui.radio_value(&mut craziness.location, "Other".to_string(), "Other");
+            if craziness.location == *"Other".to_string() {
+                ui.label("Enter your city: ");
+                ui.text_edit_singleline(other_city);
+            }
 
             egui::warn_if_debug_build(ui);
         });

@@ -1,4 +1,4 @@
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 #[allow(dead_code)]
 /// An enum to track the level of Drunkness (0 - 5)
 pub enum User {
@@ -12,7 +12,7 @@ impl Default for User {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 #[allow(dead_code)]
 /// An enum to track the level of Drunkness (0 - 5)
 pub enum Drunkness {
