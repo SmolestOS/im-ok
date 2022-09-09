@@ -165,6 +165,10 @@ impl eframe::App for ImOk {
 				ui.text_edit_singleline(other_city);
 			}
 
+			if ui.add(egui::Button::new("Submit")).clicked() {
+				//TODO: do_stuff();
+			}
+
 			egui::warn_if_debug_build(ui);
 		});
 
