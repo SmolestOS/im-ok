@@ -56,7 +56,7 @@ impl ImOk {
 		// Load previous app state (if any).
 		// Note that you must enable the `persistence` feature for this to work.
 		if let Some(storage) = cc.storage {
-			return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default()
+			return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
 		}
 
 		Default::default()
@@ -161,15 +161,14 @@ impl eframe::App for ImOk {
 
 			// Submit entry to database
 			if ui.add(egui::Button::new("Submit")).clicked() {
-				let night: Night;
-
 				// if `other_city` is not empty, replace
 				// `craziness.location` with the other city
 				// or else the location on the database will be "Other". - @charmitro
 				if other_city.is_empty() {
-					night = Night { id: None, craziness: craziness.clone() };
+					let night = Night { id: None, craziness: craziness.clone() };
+					Night::create_night(collection, night).unwrap();
 				} else {
-					night = Night {
+					let night = Night {
 						id: None,
 						craziness: Craziness {
 							user: craziness.user,
@@ -180,9 +179,8 @@ impl eframe::App for ImOk {
 							location: other_city.to_string(),
 						},
 					};
-				}
-
-				Night::create_night(collection, night).unwrap();
+					Night::create_night(collection, night).unwrap();
+				};
 			}
 
 			egui::warn_if_debug_build(ui);
