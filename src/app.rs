@@ -1,10 +1,9 @@
-use bson::doc;
-use mongodb::{options::ClientOptions, sync::Client};
-
 use crate::{
 	db::Night,
 	models::{Craziness, Drunkness, User},
 };
+use bson::doc;
+use mongodb::{options::ClientOptions, sync::Client};
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -18,7 +17,7 @@ pub struct ImOk {
 	value: f32,
 
 	#[serde(skip)]
-	collection: mongodb::sync::Collection<Night>,
+	nights_collection: mongodb::sync::Collection<Night>,
 	#[serde(skip)]
 	craziness: Craziness,
 	#[serde(skip)]
@@ -28,9 +27,9 @@ pub struct ImOk {
 impl Default for ImOk {
 	fn default() -> Self {
 		let mut client_options = ClientOptions::parse(
-            "mongodb+srv://pouts-os:smallest-os@im-ok.nzhnepa.mongodb.net/?retryWrites=true&w=majority",
-        )
-        .unwrap();
+			"mongodb://pouts-os:smallest-os@localhost:27017/?retryWrites=true&w=majority",
+		)
+		.unwrap();
 		client_options.app_name = Some("Im Ok".to_string());
 
 		let client = Client::with_options(client_options).unwrap();
@@ -41,7 +40,7 @@ impl Default for ImOk {
 			// Example stuff:
 			label: "Hello World!".to_owned(),
 			value: 2.7,
-			collection,
+			nights_collection: collection,
 			craziness: Craziness::default(),
 			other_city: String::new(),
 		}
@@ -73,7 +72,7 @@ impl eframe::App for ImOk {
 	/// Called each time the UI needs repainting, which may be many times per second.
 	/// Put your widgets into a `SidePanel`, `TopPanel`, `CentralPanel`, `Window` or `Area`.
 	fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-		let Self { label, value, collection, craziness, other_city } = self;
+		let Self { label, value, nights_collection: collection, craziness, other_city } = self;
 
 		// Examples of how to create different panels and windows.
 		// Pick whichever suits you.
@@ -102,14 +101,9 @@ impl eframe::App for ImOk {
 
 			ui.add(egui::Slider::new(value, 0.0..=10.0).text("value"));
 			if ui.button("Increment").clicked() {
-				let captain_marvel = Night {
-					id: None,
-					location: "Captain Marvel".to_owned(),
-					date: bson::DateTime::now(),
-				};
-
-				let insert_res = Night::create_night(collection, captain_marvel).unwrap();
-				println!("{}", insert_res.inserted_id);
+				for i in Night::get_all_nights(collection).unwrap() {
+					println!("{:?}", i.unwrap().craziness.location);
+				}
 
 				*value += 1.0;
 			}
@@ -158,11 +152,35 @@ impl eframe::App for ImOk {
 			ui.checkbox(&mut craziness.talked_2x, "Talked_2x");
 			ui.radio_value(&mut craziness.location, "Athens".to_string(), "Athens");
 			ui.radio_value(&mut craziness.location, "Korinthos".to_string(), "Korinthos");
-
 			ui.radio_value(&mut craziness.location, "Other".to_string(), "Other");
+
 			if craziness.location == *"Other".to_string() {
 				ui.label("Enter your city: ");
 				ui.text_edit_singleline(other_city);
+			}
+
+			// Submit entry to database
+			if ui.add(egui::Button::new("Submit")).clicked() {
+				// if `other_city` is not empty, replace
+				// `craziness.location` with the other city
+				// or else the location on the database will be "Other". - @charmitro
+				if other_city.is_empty() {
+					let night = Night { id: None, craziness: craziness.clone() };
+					Night::create_night(collection, night).unwrap();
+				} else {
+					let night = Night {
+						id: None,
+						craziness: Craziness {
+							user: craziness.user,
+							drunkness: craziness.drunkness,
+							coitus: craziness.coitus,
+							drive: craziness.drive,
+							talked_2x: craziness.talked_2x,
+							location: other_city.to_string(),
+						},
+					};
+					Night::create_night(collection, night).unwrap();
+				};
 			}
 
 			egui::warn_if_debug_build(ui);

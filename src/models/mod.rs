@@ -1,5 +1,6 @@
-#[derive(Debug, PartialEq, Eq)]
-#[allow(dead_code)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
 /// An enum to track the level of Drunkness (0 - 5)
 pub enum User {
 	Lostsaka,
@@ -12,8 +13,7 @@ impl Default for User {
 	}
 }
 
-#[derive(Debug, PartialEq, Eq)]
-#[allow(dead_code)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
 /// An enum to track the level of Drunkness (0 - 5)
 pub enum Drunkness {
 	Cool,
@@ -30,15 +30,15 @@ impl Default for Drunkness {
 	}
 }
 
-#[allow(dead_code)]
 /// A struct to track the result of the night
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Craziness {
 	pub user: User,
 	pub drunkness: Drunkness,
 	pub coitus: bool,
 	pub drive: bool,
 	pub talked_2x: bool,
-	// TODO: date field,
+	// TODO: date field <2022-09-8 Sat>,
 	pub location: String,
 }
 
