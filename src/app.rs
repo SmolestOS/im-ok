@@ -22,6 +22,10 @@ pub struct ImOk {
 	craziness: Craziness,
 	#[serde(skip)]
 	other_city: String,
+	#[serde(skip)]
+	vec1: Vec<Night>,
+	#[serde(skip)]
+	vec2: Vec<Night>,
 }
 
 impl Default for ImOk {
@@ -43,6 +47,8 @@ impl Default for ImOk {
 			nights_collection: collection,
 			craziness: Craziness::default(),
 			other_city: String::new(),
+			vec1: Vec::new(),
+			vec2: Vec::new(),
 		}
 	}
 }
@@ -50,7 +56,7 @@ impl Default for ImOk {
 impl ImOk {
 	/// Called once before the first frame.
 	pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
-		// This is also where you can customized the look at feel of egui using
+		// This is also where you can customize the look at feel of egui using
 		// `cc.egui_ctx.set_visuals` and `cc.egui_ctx.set_fonts`.
 
 		// Load previous app state (if any).
@@ -72,7 +78,8 @@ impl eframe::App for ImOk {
 	/// Called each time the UI needs repainting, which may be many times per second.
 	/// Put your widgets into a `SidePanel`, `TopPanel`, `CentralPanel`, `Window` or `Area`.
 	fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-		let Self { label, value, nights_collection: collection, craziness, other_city } = self;
+		let Self { label, value, nights_collection: collection, craziness, other_city, vec1, vec2 } =
+			self;
 
 		// Examples of how to create different panels and windows.
 		// Pick whichever suits you.
@@ -90,36 +97,21 @@ impl eframe::App for ImOk {
 				});
 			});
 		});
+		let mut vec1: Vec<Night> = Vec::new();
+		let mut vec2: Vec<Night> = Vec::new();
 
 		egui::SidePanel::left("side_panel").show(ctx, |ui| {
 			ui.heading("Side Panel");
 
-			ui.horizontal(|ui| {
-				ui.label("Write something: ");
-				ui.text_edit_singleline(label);
-			});
-
-			ui.add(egui::Slider::new(value, 0.0..=10.0).text("value"));
-			if ui.button("Increment").clicked() {
+			egui::CollapsingHeader::new("Lostsaka").show(ui, |ui| {
 				for i in Night::get_all_nights(collection).unwrap() {
-					println!("{:?}", i.unwrap().craziness.location);
+					//println!("{:?}", i.unwrap().craziness.location);
+					vec1.push(i.unwrap());
 				}
-
-				*value += 1.0;
-			}
-
-			ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
-				ui.horizontal(|ui| {
-					ui.spacing_mut().item_spacing.x = 0.0;
-					ui.label("powered by ");
-					ui.hyperlink_to("egui", "https://github.com/emilk/egui");
-					ui.label(" and ");
-					ui.hyperlink_to(
-						"eframe",
-						"https://github.com/emilk/egui/tree/master/crates/eframe",
-					);
-					ui.label(".");
-				});
+				ui.label(format!("{:?}", vec1))
+			});
+			egui::CollapsingHeader::new("Gkasma").show(ui, |ui| {
+				ui.label("Body");
 			});
 		});
 
