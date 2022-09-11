@@ -10,12 +10,7 @@ use mongodb::{options::ClientOptions, sync::Client};
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
 pub struct ImOk {
 	// Example stuff:
-	label: String,
-
 	// this how you opt-out of serialization of a member
-	#[serde(skip)]
-	value: f32,
-
 	#[serde(skip)]
 	nights_collection: mongodb::sync::Collection<Night>,
 	#[serde(skip)]
@@ -23,9 +18,7 @@ pub struct ImOk {
 	#[serde(skip)]
 	other_city: String,
 	#[serde(skip)]
-	vec1: Vec<Night>,
-	#[serde(skip)]
-	vec2: Vec<Night>,
+	night_entries: Vec<Night>,
 }
 
 impl Default for ImOk {
@@ -38,17 +31,18 @@ impl Default for ImOk {
 
 		let client = Client::with_options(client_options).unwrap();
 
-		let collection = client.database("im_ok").collection::<Night>("nights");
+		let mut collection = client.database("im_ok").collection::<Night>("nights");
+		let mut night_entries = Vec::new();
+		for i in Night::get_all_nights(&mut collection).unwrap() {
+			night_entries.push(i.unwrap());
+		}
 
 		Self {
 			// Example stuff:
-			label: "Hello World!".to_owned(),
-			value: 2.7,
 			nights_collection: collection,
 			craziness: Craziness::default(),
 			other_city: String::new(),
-			vec1: Vec::new(),
-			vec2: Vec::new(),
+			night_entries,
 		}
 	}
 }
@@ -78,8 +72,7 @@ impl eframe::App for ImOk {
 	/// Called each time the UI needs repainting, which may be many times per second.
 	/// Put your widgets into a `SidePanel`, `TopPanel`, `CentralPanel`, `Window` or `Area`.
 	fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-		let Self { label, value, nights_collection: collection, craziness, other_city, vec1, vec2 } =
-			self;
+		let Self { nights_collection: collection, craziness, other_city, night_entries } = self;
 
 		// Examples of how to create different panels and windows.
 		// Pick whichever suits you.
@@ -97,21 +90,23 @@ impl eframe::App for ImOk {
 				});
 			});
 		});
-		let mut vec1: Vec<Night> = Vec::new();
-		let mut vec2: Vec<Night> = Vec::new();
 
 		egui::SidePanel::left("side_panel").show(ctx, |ui| {
 			ui.heading("Side Panel");
 
 			egui::CollapsingHeader::new("Lostsaka").show(ui, |ui| {
-				for i in Night::get_all_nights(collection).unwrap() {
-					//println!("{:?}", i.unwrap().craziness.location);
-					vec1.push(i.unwrap());
+				for i in night_entries.iter() {
+					if i.craziness.user == User::Lostsaka {
+						ui.label(format!("{:?}", i.craziness.location));
+					};
 				}
-				ui.label(format!("{:?}", vec1))
 			});
 			egui::CollapsingHeader::new("Gkasma").show(ui, |ui| {
-				ui.label("Body");
+				for i in night_entries.iter() {
+					if i.craziness.user == User::Gkasma {
+						ui.label(format!("{:?}", i.craziness.location));
+					};
+				}
 			});
 		});
 
