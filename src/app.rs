@@ -153,7 +153,7 @@ impl eframe::App for ImOk {
 				// or else the location on the database will be "Other". - @charmitro
 				if other_city.is_empty() {
 					let night = Night { id: None, craziness: craziness.clone() };
-					Night::create_night(collection, night).unwrap();
+					Night::create_night(collection, &night).unwrap();
 				} else {
 					let night = Night {
 						id: None,
@@ -166,7 +166,8 @@ impl eframe::App for ImOk {
 							location: other_city.to_string(),
 						},
 					};
-					Night::create_night(collection, night).unwrap();
+					Night::create_night(collection, &night).unwrap();
+					night_entries.push(night);
 				};
 			}
 
