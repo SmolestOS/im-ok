@@ -18,7 +18,7 @@ pub struct Night {
 impl Night {
 	pub fn create_night(
 		collection: &mut mongodb::sync::Collection<Night>,
-		item: &Night,
+		item: Night,
 	) -> std::result::Result<InsertOneResult, Error> {
 		// Convert `captain_marvel` to a Bson instance:
 		collection.insert_one(item, None)
