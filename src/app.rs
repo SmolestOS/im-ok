@@ -19,8 +19,6 @@ pub struct ImOk {
 	other_city: String,
 	#[serde(skip)]
 	night_entries: Vec<Night>,
-	#[serde(skip)]
-	refresh_flag: bool,
 }
 
 impl Default for ImOk {
@@ -33,8 +31,11 @@ impl Default for ImOk {
 
 		let client = Client::with_options(client_options).unwrap();
 
-		let collection = client.database("im_ok").collection::<Night>("nights");
-		let night_entries = Vec::new();
+		let mut collection = client.database("im_ok").collection::<Night>("nights");
+		let mut night_entries = Vec::new();
+		for i in Night::get_all_nights(&mut collection).unwrap() {
+			night_entries.push(i.unwrap());
+		}
 
 		Self {
 			// Example stuff:
@@ -42,7 +43,6 @@ impl Default for ImOk {
 			craziness: Craziness::default(),
 			other_city: String::new(),
 			night_entries,
-			refresh_flag: false,
 		}
 	}
 }
@@ -72,20 +72,7 @@ impl eframe::App for ImOk {
 	/// Called each time the UI needs repainting, which may be many times per second.
 	/// Put your widgets into a `SidePanel`, `TopPanel`, `CentralPanel`, `Window` or `Area`.
 	fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-		let Self {
-			nights_collection: collection,
-			craziness,
-			other_city,
-			night_entries,
-			refresh_flag,
-		} = self;
-		if !(*refresh_flag) {
-			night_entries.clear();
-			for i in Night::get_all_nights(collection).unwrap() {
-				night_entries.push(i.unwrap());
-			}
-			*refresh_flag = true;
-		}
+		let Self { nights_collection: collection, craziness, other_city, night_entries } = self;
 
 		// Examples of how to create different panels and windows.
 		// Pick whichever suits you.
@@ -121,9 +108,6 @@ impl eframe::App for ImOk {
 					};
 				}
 			});
-			if ui.add(egui::Button::new("Refresh")).clicked() {
-				*refresh_flag = false;
-			}
 		});
 
 		egui::CentralPanel::default().show(ctx, |ui| {
