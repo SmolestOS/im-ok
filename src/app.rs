@@ -108,6 +108,13 @@ impl eframe::App for ImOk {
 					};
 				}
 			});
+
+			if ui.add(egui::Button::new("Refresh")).clicked() {
+				night_entries.clear();
+				for i in Night::get_all_nights(collection).unwrap() {
+					night_entries.push(i.unwrap());
+				}
+			}
 		});
 
 		egui::CentralPanel::default().show(ctx, |ui| {
