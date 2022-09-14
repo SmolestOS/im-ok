@@ -10,18 +10,15 @@ use mongodb::{options::ClientOptions, sync::Client};
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
 pub struct ImOk {
 	// Example stuff:
-	label: String,
-
 	// this how you opt-out of serialization of a member
-	#[serde(skip)]
-	value: f32,
-
 	#[serde(skip)]
 	nights_collection: mongodb::sync::Collection<Night>,
 	#[serde(skip)]
 	craziness: Craziness,
 	#[serde(skip)]
 	other_city: String,
+	#[serde(skip)]
+	night_entries: Vec<Night>,
 }
 
 impl Default for ImOk {
@@ -34,15 +31,18 @@ impl Default for ImOk {
 
 		let client = Client::with_options(client_options).unwrap();
 
-		let collection = client.database("im_ok").collection::<Night>("nights");
+		let mut collection = client.database("im_ok").collection::<Night>("nights");
+		let mut night_entries = Vec::new();
+		for i in Night::get_all_nights(&mut collection).unwrap() {
+			night_entries.push(i.unwrap());
+		}
 
 		Self {
 			// Example stuff:
-			label: "Hello World!".to_owned(),
-			value: 2.7,
 			nights_collection: collection,
 			craziness: Craziness::default(),
 			other_city: String::new(),
+			night_entries,
 		}
 	}
 }
@@ -50,7 +50,7 @@ impl Default for ImOk {
 impl ImOk {
 	/// Called once before the first frame.
 	pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
-		// This is also where you can customized the look at feel of egui using
+		// This is also where you can customize the look at feel of egui using
 		// `cc.egui_ctx.set_visuals` and `cc.egui_ctx.set_fonts`.
 
 		// Load previous app state (if any).
@@ -72,7 +72,7 @@ impl eframe::App for ImOk {
 	/// Called each time the UI needs repainting, which may be many times per second.
 	/// Put your widgets into a `SidePanel`, `TopPanel`, `CentralPanel`, `Window` or `Area`.
 	fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-		let Self { label, value, nights_collection: collection, craziness, other_city } = self;
+		let Self { nights_collection: collection, craziness, other_city, night_entries } = self;
 
 		// Examples of how to create different panels and windows.
 		// Pick whichever suits you.
@@ -94,33 +94,27 @@ impl eframe::App for ImOk {
 		egui::SidePanel::left("side_panel").show(ctx, |ui| {
 			ui.heading("Side Panel");
 
-			ui.horizontal(|ui| {
-				ui.label("Write something: ");
-				ui.text_edit_singleline(label);
-			});
-
-			ui.add(egui::Slider::new(value, 0.0..=10.0).text("value"));
-			if ui.button("Increment").clicked() {
-				for i in Night::get_all_nights(collection).unwrap() {
-					println!("{:?}", i.unwrap().craziness.location);
+			egui::CollapsingHeader::new("Lostsaka").show(ui, |ui| {
+				for i in night_entries.iter() {
+					if i.craziness.user == User::Lostsaka {
+						ui.label(format!("{:?}", i.craziness.location));
+					};
 				}
-
-				*value += 1.0;
-			}
-
-			ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
-				ui.horizontal(|ui| {
-					ui.spacing_mut().item_spacing.x = 0.0;
-					ui.label("powered by ");
-					ui.hyperlink_to("egui", "https://github.com/emilk/egui");
-					ui.label(" and ");
-					ui.hyperlink_to(
-						"eframe",
-						"https://github.com/emilk/egui/tree/master/crates/eframe",
-					);
-					ui.label(".");
-				});
 			});
+			egui::CollapsingHeader::new("Gkasma").show(ui, |ui| {
+				for i in night_entries.iter() {
+					if i.craziness.user == User::Gkasma {
+						ui.label(format!("{:?}", i.craziness.location));
+					};
+				}
+			});
+
+			if ui.add(egui::Button::new("Refresh")).clicked() {
+				night_entries.clear();
+				for i in Night::get_all_nights(collection).unwrap() {
+					night_entries.push(i.unwrap());
+				}
+			}
 		});
 
 		egui::CentralPanel::default().show(ctx, |ui| {
