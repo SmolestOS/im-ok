@@ -56,7 +56,7 @@ impl ImOk {
 		// Load previous app state (if any).
 		// Note that you must enable the `persistence` feature for this to work.
 		if let Some(storage) = cc.storage {
-			return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default()
+			return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
 		}
 
 		Default::default()
@@ -95,28 +95,29 @@ impl eframe::App for ImOk {
 		});
 
 		egui::SidePanel::left("side_panel").show(ctx, |ui| {
-			ui.heading("Entries");
-			egui::CollapsingHeader::new("Lostsaka").show(ui, |ui| {
-				for i in night_entries.iter() {
-					if i.craziness.user == User::Lostsaka {
-						ui.label(format!("{:?}", i.craziness.location));
-					};
-				}
-			});
-			egui::CollapsingHeader::new("Gkasma").show(ui, |ui| {
-				for i in night_entries.iter() {
-					if i.craziness.user == User::Gkasma {
-						ui.label(format!("{:?}", i.craziness.location));
-					};
-				}
-			});
+			egui::ScrollArea::both().show(ui, |ui| {
+				egui::CollapsingHeader::new("Lostsaka").show(ui, |ui| {
+					for i in night_entries.iter() {
+						if i.craziness.user == User::Lostsaka {
+							ui.label(format!("{:?}", i.craziness.location));
+						};
+					}
+				});
+				egui::CollapsingHeader::new("Gkasma").show(ui, |ui| {
+					for i in night_entries.iter() {
+						if i.craziness.user == User::Gkasma {
+							ui.label(format!("{:?}", i.craziness.location));
+						};
+					}
+				});
 
-			if ui.add(egui::Button::new("Refresh")).clicked() {
-				night_entries.clear();
-				for i in Night::get_all_nights(collection).unwrap() {
-					night_entries.push(i.unwrap());
+				if ui.add(egui::Button::new("Refresh")).clicked() {
+					night_entries.clear();
+					for i in Night::get_all_nights(collection).unwrap() {
+						night_entries.push(i.unwrap());
+					}
 				}
-			}
+			});
 		});
 
 		egui::CentralPanel::default().show(ctx, |ui| {
