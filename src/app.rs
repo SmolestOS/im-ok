@@ -88,6 +88,9 @@ impl eframe::App for ImOk {
 						_frame.close();
 					}
 				});
+				ui.with_layout(egui::Layout::right_to_left(egui::Align::TOP), |ui| {
+					egui::global_dark_light_mode_buttons(ui);
+				});
 			});
 		});
 
@@ -119,7 +122,7 @@ impl eframe::App for ImOk {
 		egui::CentralPanel::default().show(ctx, |ui| {
 			// The central panel the region left after adding TopPanel's and SidePanel's
 			ui.heading("Users");
-			egui::ComboBox::from_label("Select user")
+			egui::ComboBox::from_id_source("my-box")
 				.selected_text(format!("{:?}", craziness.user))
 				.show_ui(ui, |ui| {
 					ui.selectable_value(&mut craziness.user, User::Lostsaka, "Lostsaka");
@@ -127,7 +130,7 @@ impl eframe::App for ImOk {
 				});
 			ui.separator();
 			ui.heading("Drunk levels");
-			egui::ComboBox::from_label("Select level of drunkness")
+			egui::ComboBox::from_id_source("my-box2")
 				.selected_text(format!("{:?}", craziness.drunkness))
 				.show_ui(ui, |ui| {
 					ui.selectable_value(&mut craziness.drunkness, Drunkness::Cool, "Cool");
@@ -152,6 +155,7 @@ impl eframe::App for ImOk {
 				ui.label("Enter your city: ");
 				ui.text_edit_singleline(other_city);
 			}
+
 			ui.separator();
 			ui.heading("Night Activities");
 			ui.checkbox(&mut craziness.coitus, "Coitus");
