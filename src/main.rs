@@ -7,7 +7,10 @@ fn main() {
 	// Log to stdout (if you run with `RUST_LOG=debug`).
 	tracing_subscriber::fmt::init();
 
-	let native_options = eframe::NativeOptions::default();
+	let mut native_options = eframe::NativeOptions::default();
+	native_options.min_window_size = Some(egui::Vec2::new(450.0, 493.0));
+	native_options.max_window_size = Some(egui::Vec2::new(450.0, 493.0));
+	native_options.resizable = false;
 	eframe::run_native("im ok", native_options, Box::new(|cc| Box::new(im_ok::ImOk::new(cc))));
 }
 
