@@ -24,9 +24,7 @@ pub struct ImOk {
 impl Default for ImOk {
 	fn default() -> Self {
 		let mut client_options = ClientOptions::parse(
-			std::env::var("MONGO_URI")
-				.expect("MONGO_URI environment variable not set.")
-				.to_string(),
+			std::env::var("MONGO_URI").expect("MONGO_URI environment variable not set."),
 		)
 		.unwrap();
 		client_options.app_name = Some("Im Ok".to_string());
@@ -58,7 +56,7 @@ impl ImOk {
 		// Load previous app state (if any).
 		// Note that you must enable the `persistence` feature for this to work.
 		if let Some(storage) = cc.storage {
-			return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
+			return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default()
 		}
 
 		Default::default()
