@@ -88,45 +88,50 @@ impl eframe::App for ImOk {
 						_frame.close();
 					}
 				});
+				ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+					egui::global_dark_light_mode_switch(ui);
+				});
 			});
 		});
 
 		egui::SidePanel::left("side_panel").show(ctx, |ui| {
-			ui.heading("Side Panel");
+			egui::ScrollArea::both().show(ui, |ui| {
+				egui::CollapsingHeader::new("Lostsaka").show(ui, |ui| {
+					for i in night_entries.iter() {
+						if i.craziness.user == User::Lostsaka {
+							ui.label(format!("{:?}", i.craziness.location));
+						};
+					}
+				});
+				egui::CollapsingHeader::new("Gkasma").show(ui, |ui| {
+					for i in night_entries.iter() {
+						if i.craziness.user == User::Gkasma {
+							ui.label(format!("{:?}", i.craziness.location));
+						};
+					}
+				});
 
-			egui::CollapsingHeader::new("Lostsaka").show(ui, |ui| {
-				for i in night_entries.iter() {
-					if i.craziness.user == User::Lostsaka {
-						ui.label(format!("{:?}", i.craziness.location));
-					};
+				if ui.add(egui::Button::new("Refresh")).clicked() {
+					night_entries.clear();
+					for i in Night::get_all_nights(collection).unwrap() {
+						night_entries.push(i.unwrap());
+					}
 				}
 			});
-			egui::CollapsingHeader::new("Gkasma").show(ui, |ui| {
-				for i in night_entries.iter() {
-					if i.craziness.user == User::Gkasma {
-						ui.label(format!("{:?}", i.craziness.location));
-					};
-				}
-			});
-
-			if ui.add(egui::Button::new("Refresh")).clicked() {
-				night_entries.clear();
-				for i in Night::get_all_nights(collection).unwrap() {
-					night_entries.push(i.unwrap());
-				}
-			}
 		});
 
 		egui::CentralPanel::default().show(ctx, |ui| {
 			// The central panel the region left after adding TopPanel's and SidePanel's
-
-			egui::ComboBox::from_label("Select user")
+			ui.heading("Users");
+			egui::ComboBox::from_id_source("my-box")
 				.selected_text(format!("{:?}", craziness.user))
 				.show_ui(ui, |ui| {
 					ui.selectable_value(&mut craziness.user, User::Lostsaka, "Lostsaka");
 					ui.selectable_value(&mut craziness.user, User::Gkasma, "Gkasma");
 				});
-			egui::ComboBox::from_label("Select level of drunkness")
+			ui.separator();
+			ui.heading("Drunk levels");
+			egui::ComboBox::from_id_source("my-box2")
 				.selected_text(format!("{:?}", craziness.drunkness))
 				.show_ui(ui, |ui| {
 					ui.selectable_value(&mut craziness.drunkness, Drunkness::Cool, "Cool");
@@ -141,9 +146,8 @@ impl eframe::App for ImOk {
 					ui.selectable_value(&mut craziness.drunkness, Drunkness::ImOk, "ImOk");
 				});
 
-			ui.checkbox(&mut craziness.coitus, "Coitus");
-			ui.checkbox(&mut craziness.drive, "Driven");
-			ui.checkbox(&mut craziness.talked_2x, "Talked_2x");
+			ui.separator();
+			ui.heading("City");
 			ui.radio_value(&mut craziness.location, "Athens".to_string(), "Athens");
 			ui.radio_value(&mut craziness.location, "Korinthos".to_string(), "Korinthos");
 			ui.radio_value(&mut craziness.location, "Other".to_string(), "Other");
@@ -152,6 +156,12 @@ impl eframe::App for ImOk {
 				ui.label("Enter your city: ");
 				ui.text_edit_singleline(other_city);
 			}
+
+			ui.separator();
+			ui.heading("Night Activities");
+			ui.checkbox(&mut craziness.coitus, "Coitus");
+			ui.checkbox(&mut craziness.drive, "Driven");
+			ui.checkbox(&mut craziness.talked_2x, "Talked_2x");
 
 			// Submit entry to database
 			if ui.add(egui::Button::new("Submit")).clicked() {
@@ -176,8 +186,6 @@ impl eframe::App for ImOk {
 					Night::create_night(collection, night).unwrap();
 				};
 			}
-
-			egui::warn_if_debug_build(ui);
 		});
 
 		if false {
