@@ -88,7 +88,7 @@ impl eframe::App for ImOk {
 						_frame.close();
 					}
 				});
-				ui.with_layout(egui::Layout::right_to_left(egui::Align::TOP), |ui| {
+				ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
 					egui::global_dark_light_mode_switch(ui);
 				});
 			});
