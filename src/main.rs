@@ -5,9 +5,9 @@
 #[cfg(not(target_arch = "wasm32"))]
 fn main() {
 	// Log to stdout (if you run with `RUST_LOG=debug`).
-
 	use image::GenericImageView;
 	tracing_subscriber::fmt::init();
+	dotenv::dotenv().ok();
 
 	let mut native_options = eframe::NativeOptions::default();
 

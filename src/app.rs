@@ -24,7 +24,7 @@ pub struct ImOk {
 impl Default for ImOk {
 	fn default() -> Self {
 		let mut client_options = ClientOptions::parse(
-			"mongodb://pouts-os:smallest-os@localhost:27017/?retryWrites=true&w=majority",
+			std::env::var("MONGO_URI").expect("MONGO_URI environment variable not set."),
 		)
 		.unwrap();
 		client_options.app_name = Some("Im Ok".to_string());
