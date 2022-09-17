@@ -1,5 +1,4 @@
-use chrono::{offset::Utc, Date};
-use egui_datepicker::DatePicker;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
@@ -43,6 +42,7 @@ pub struct Craziness {
 	//pub date: Date<Utc>,
 	pub location: String,
 	pub night_description: String,
+	pub date: DateTime<Utc>,
 }
 
 impl Default for Craziness {
@@ -55,6 +55,7 @@ impl Default for Craziness {
 			talked_2x: false,
 			location: "Athens".to_string(),
 			night_description: "Kala htan".to_string(),
+			date: DateTime::<Utc>::default(),
 		}
 	}
 }

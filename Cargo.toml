@@ -12,11 +12,11 @@ rust-version = "1.60"
 egui = "0.19.0"
 eframe = { version = "0.19.0", features = ["persistence"] }
 serde = { version = "1", features = ["derive"] } # You only need this if you want app persistence
-chrono = "0.4.22"
+chrono = {version = "0.4.22", features = ["serde"] }
 bson = "2.4.0"
 image = "0.24.3"
 dotenv = "0.15.0"
-egui-datepicker = "0.3"
+num-traits = "0.2.15"
 
 [dependencies.mongodb]
 version = "2.3.0"

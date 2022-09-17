@@ -13,8 +13,8 @@ fn main() {
 
 	let icon = image::open("assets/favicon.ico").expect("peos");
 	let (icon_width, icon_height) = icon.dimensions();
-	native_options.min_window_size = Some(egui::Vec2::new(450.0, 493.0));
-	native_options.max_window_size = Some(egui::Vec2::new(450.0, 493.0));
+	native_options.min_window_size = Some(egui::Vec2::new(840.0, 620.0));
+	native_options.max_window_size = Some(egui::Vec2::new(840.0, 620.0));
 	native_options.resizable = false;
 	native_options.icon_data =
 		Some(eframe::IconData { rgba: icon.into_bytes(), width: icon_width, height: icon_height });
