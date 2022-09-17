@@ -63,7 +63,7 @@ impl ImOk {
 		// Load previous app state (if any).
 		// Note that you must enable the `persistence` feature for this to work.
 		if let Some(storage) = cc.storage {
-			return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
+			return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default()
 		}
 
 		Default::default()
@@ -110,16 +110,15 @@ impl eframe::App for ImOk {
 			egui::ScrollArea::both().show(ui, |ui| {
 				egui::CollapsingHeader::new("Lostsaka").show(ui, |ui| {
 					for i in night_entries.iter() {
-						if i.craziness.user == User::Lostsaka
-							&& ui
-								.button(format!(
-									"{} {}/{}/{}",
-									i.craziness.date.weekday(),
-									i.craziness.date.day(),
-									i.craziness.date.month(),
-									i.craziness.date.year()
-								))
-								.clicked()
+						if i.craziness.user == User::Lostsaka &&
+							ui.button(format!(
+								"{} {}/{}/{}",
+								i.craziness.date.weekday(),
+								i.craziness.date.day(),
+								i.craziness.date.month(),
+								i.craziness.date.year()
+							))
+							.clicked()
 						{
 							*selected_night = Some(i.clone());
 						};
@@ -127,8 +126,8 @@ impl eframe::App for ImOk {
 				});
 				egui::CollapsingHeader::new("Gkasma").show(ui, |ui| {
 					for i in night_entries.iter() {
-						if i.craziness.user == User::Gkasma
-							&& ui.button(format!("{:?}", i.craziness.location)).clicked()
+						if i.craziness.user == User::Gkasma &&
+							ui.button(format!("{:?}", i.craziness.location)).clicked()
 						{
 							*selected_night = Some(i.clone());
 						};
