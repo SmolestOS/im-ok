@@ -4,7 +4,8 @@ use crate::{
 	models::{Craziness, Drunkness, User},
 };
 use bson::doc;
-use egui::Checkbox;
+use chrono::Datelike;
+use egui::{Checkbox, TextEdit};
 use mongodb::{options::ClientOptions, sync::Client};
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
@@ -105,12 +106,19 @@ impl eframe::App for ImOk {
 			});
 		});
 
-		egui::SidePanel::left("side_panel").show(ctx, |ui| {
+		egui::SidePanel::left("side_panel").min_width(120.0).show(ctx, |ui| {
 			egui::ScrollArea::both().show(ui, |ui| {
 				egui::CollapsingHeader::new("Lostsaka").show(ui, |ui| {
 					for i in night_entries.iter() {
 						if i.craziness.user == User::Lostsaka &&
-							ui.button(format!("{:?}", i.craziness.location)).clicked()
+							ui.button(format!(
+								"{} {}/{}/{}",
+								i.craziness.date.weekday(),
+								i.craziness.date.day(),
+								i.craziness.date.month(),
+								i.craziness.date.year()
+							))
+							.clicked()
 						{
 							*selected_night = Some(i.clone());
 						};
@@ -180,6 +188,22 @@ impl eframe::App for ImOk {
 					),
 				);
 
+				ui.separator();
+				ui.heading("Description");
+				ui.add_enabled(
+					false,
+					TextEdit::multiline(
+						&mut selected_night.as_ref().unwrap().craziness.description.clone(),
+					),
+				);
+
+				ui.separator();
+				ui.heading("Date");
+				ui.add(DatePicker::new(
+					"date_picker",
+					&mut selected_night.as_ref().unwrap().craziness.date.clone(),
+				));
+
 				// Submit entry to database
 				if ui.add(egui::Button::new("Exit viewing mode")).clicked() {
 					*selected_night = None;
@@ -230,6 +254,9 @@ impl eframe::App for ImOk {
 				ui.checkbox(&mut craziness.talked_2x, "Talked_2x");
 
 				ui.separator();
+				ui.text_edit_multiline(&mut craziness.description);
+
+				ui.separator();
 				ui.heading("Date");
 				ui.add(DatePicker::new("date_picker", &mut craziness.date));
 
@@ -252,7 +279,7 @@ impl eframe::App for ImOk {
 								drive: craziness.drive,
 								talked_2x: craziness.talked_2x,
 								location: other_city.to_string(),
-								night_description: craziness.night_description.clone(),
+								description: craziness.description.clone(),
 								date: craziness.date,
 							},
 						};
