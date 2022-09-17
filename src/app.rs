@@ -162,6 +162,10 @@ impl eframe::App for ImOk {
 			ui.checkbox(&mut craziness.coitus, "Coitus");
 			ui.checkbox(&mut craziness.drive, "Driven");
 			ui.checkbox(&mut craziness.talked_2x, "Talked_2x");
+			ui.label("Enter a description of the night: ");
+			ui.text_edit_singleline(&mut craziness.night_description);
+
+			ui.add(crate::datepicker::DatePicker::new("datepicker-unique-id", &mut craziness.date));
 
 			// Submit entry to database
 			if ui.add(egui::Button::new("Submit")).clicked() {
@@ -181,6 +185,8 @@ impl eframe::App for ImOk {
 							drive: craziness.drive,
 							talked_2x: craziness.talked_2x,
 							location: other_city.to_string(),
+							night_description: craziness.night_description.clone(),
+							date: craziness.date,
 						},
 					};
 					Night::create_night(collection, night).unwrap();
