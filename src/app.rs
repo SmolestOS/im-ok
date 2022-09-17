@@ -155,7 +155,7 @@ impl eframe::App for ImOk {
 				));
 
 				ui.separator();
-
+        
 				ui.heading("Night Activities");
 				ui.add_enabled(
 					false,

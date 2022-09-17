@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
@@ -38,8 +39,10 @@ pub struct Craziness {
 	pub coitus: bool,
 	pub drive: bool,
 	pub talked_2x: bool,
-	// TODO: date field <2022-09-8 Sat>,
+	//pub date: Date<Utc>,
 	pub location: String,
+	pub night_description: String,
+	pub date: DateTime<Utc>,
 }
 
 impl Default for Craziness {
@@ -51,6 +54,8 @@ impl Default for Craziness {
 			drive: false,
 			talked_2x: false,
 			location: "Athens".to_string(),
+			night_description: "Kala htan".to_string(),
+			date: DateTime::<Utc>::default(),
 		}
 	}
 }
