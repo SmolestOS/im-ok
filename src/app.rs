@@ -19,6 +19,8 @@ pub struct ImOk {
 	other_city: String,
 	#[serde(skip)]
 	night_entries: Vec<Night>,
+	#[serde(skip)]
+	night_description: String,
 }
 
 impl Default for ImOk {
@@ -42,6 +44,7 @@ impl Default for ImOk {
 			nights_collection: collection,
 			craziness: Craziness::default(),
 			other_city: String::new(),
+			night_description: String::new(),
 			night_entries,
 		}
 	}
@@ -72,7 +75,13 @@ impl eframe::App for ImOk {
 	/// Called each time the UI needs repainting, which may be many times per second.
 	/// Put your widgets into a `SidePanel`, `TopPanel`, `CentralPanel`, `Window` or `Area`.
 	fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-		let Self { nights_collection: collection, craziness, other_city, night_entries } = self;
+		let Self {
+			nights_collection: collection,
+			craziness,
+			other_city,
+			night_entries,
+			night_description,
+		} = self;
 
 		// Examples of how to create different panels and windows.
 		// Pick whichever suits you.
@@ -162,6 +171,8 @@ impl eframe::App for ImOk {
 			ui.checkbox(&mut craziness.coitus, "Coitus");
 			ui.checkbox(&mut craziness.drive, "Driven");
 			ui.checkbox(&mut craziness.talked_2x, "Talked_2x");
+			ui.label("Enter a description of the night: ");
+			ui.text_edit_singleline(night_description);
 
 			// Submit entry to database
 			if ui.add(egui::Button::new("Submit")).clicked() {
@@ -181,6 +192,7 @@ impl eframe::App for ImOk {
 							drive: craziness.drive,
 							talked_2x: craziness.talked_2x,
 							location: other_city.to_string(),
+							night_description: night_description.to_string(),
 						},
 					};
 					Night::create_night(collection, night).unwrap();
