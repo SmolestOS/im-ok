@@ -1,4 +1,5 @@
 use crate::{
+	datepicker::DatePicker,
 	db::Night,
 	models::{Craziness, Drunkness, User},
 };
@@ -155,7 +156,7 @@ impl eframe::App for ImOk {
 				));
 
 				ui.separator();
-        
+
 				ui.heading("Night Activities");
 				ui.add_enabled(
 					false,
@@ -228,7 +229,12 @@ impl eframe::App for ImOk {
 				ui.checkbox(&mut craziness.drive, "Driven");
 				ui.checkbox(&mut craziness.talked_2x, "Talked_2x");
 
+				ui.separator();
+				ui.heading("Date");
+				ui.add(DatePicker::new("date_picker", &mut craziness.date));
+
 				// Submit entry to database
+				ui.separator();
 				if ui.add(egui::Button::new("Submit")).clicked() {
 					// if `other_city` is not empty, replace
 					// `craziness.location` with the other city
@@ -246,6 +252,8 @@ impl eframe::App for ImOk {
 								drive: craziness.drive,
 								talked_2x: craziness.talked_2x,
 								location: other_city.to_string(),
+								night_description: craziness.night_description.clone(),
+								date: craziness.date,
 							},
 						};
 						Night::create_night(collection, night).unwrap();
