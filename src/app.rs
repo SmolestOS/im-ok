@@ -127,7 +127,14 @@ impl eframe::App for ImOk {
 				egui::CollapsingHeader::new("Gkasma").show(ui, |ui| {
 					for i in night_entries.iter() {
 						if i.craziness.user == User::Gkasma &&
-							ui.button(format!("{:?}", i.craziness.location)).clicked()
+							ui.button(format!(
+								"{} {}/{}/{}",
+								i.craziness.date.weekday(),
+								i.craziness.date.day(),
+								i.craziness.date.month(),
+								i.craziness.date.year()
+							))
+							.clicked()
 						{
 							*selected_night = Some(i.clone());
 						};
