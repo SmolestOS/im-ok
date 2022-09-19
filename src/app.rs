@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use crate::{
 	datepicker::DatePicker,
@@ -23,7 +23,7 @@ pub struct ImOk {
 	#[serde(skip)]
 	other_city: String,
 	#[serde(skip)]
-	night_entries: HashMap<ObjectId, Craziness>,
+	night_entries: BTreeMap<ObjectId, Craziness>,
 
 	#[serde(skip)]
 	selected_night: Option<(ObjectId, Craziness)>,
@@ -44,7 +44,7 @@ impl Default for ImOk {
 		#[cfg(not(debug_assertions))]
 		let mut collection = client.database("im_ok_prod").collection::<Night>("nights");
 
-		let mut night_entries = HashMap::<ObjectId, Craziness>::new();
+		let mut night_entries = BTreeMap::<ObjectId, Craziness>::new();
 		for i in Night::get_all_nights(&mut collection).unwrap() {
 			night_entries.insert(i.as_ref().unwrap().id.unwrap(), i.unwrap().craziness);
 		}
@@ -63,7 +63,7 @@ impl Default for ImOk {
 impl ImOk {
 	/// Helper function for updating the `night_entries`
 	pub fn refresh(
-		night_entries: &mut HashMap<ObjectId, Craziness>,
+		night_entries: &mut BTreeMap<ObjectId, Craziness>,
 		mut collection: mongodb::sync::Collection<Night>,
 	) {
 		for i in Night::get_all_nights(&mut collection).unwrap() {
@@ -72,7 +72,7 @@ impl ImOk {
 	}
 
 	pub fn delete_entry(
-		night_entries: &mut HashMap<ObjectId, Craziness>,
+		night_entries: &mut BTreeMap<ObjectId, Craziness>,
 		mut collection: mongodb::sync::Collection<Night>,
 		id: ObjectId,
 	) {
