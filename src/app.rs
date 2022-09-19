@@ -3,10 +3,10 @@ use crate::{
 	db::Night,
 	models::{Craziness, Drunkness, User},
 };
-use bson::doc;
+use bson::{doc, oid::ObjectId};
 use chrono::Datelike;
 use egui::{Checkbox, TextEdit};
-use mongodb::{options::ClientOptions, sync::Client};
+use mongodb::{error::Error, options::ClientOptions, sync::Client};
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -55,6 +55,31 @@ impl Default for ImOk {
 }
 
 impl ImOk {
+	/// Helper function for updating the `night_entries`
+	pub fn refresh(
+		night_entries: &mut Vec<Night>,
+		mut collection: mongodb::sync::Collection<Night>,
+	) {
+		night_entries.clear();
+		for i in Night::get_all_nights(&mut collection).unwrap() {
+			night_entries.push(i.unwrap());
+		}
+	}
+
+	pub fn delete_entry(
+		night_entries: &mut Vec<Night>,
+		mut collection: mongodb::sync::Collection<Night>,
+		id: ObjectId,
+	) {
+		Night::delete_night(&mut collection, id)
+			.map(|_| {
+				Self::refresh(night_entries, collection.clone());
+				Ok::<(), Error>(())
+			})
+			.unwrap()
+			.unwrap();
+	}
+
 	/// Called once before the first frame.
 	pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
 		// This is also where you can customize the look at feel of egui using
@@ -109,7 +134,7 @@ impl eframe::App for ImOk {
 		egui::SidePanel::left("side_panel").min_width(120.0).show(ctx, |ui| {
 			egui::ScrollArea::both().show(ui, |ui| {
 				egui::CollapsingHeader::new("Lostsaka").show(ui, |ui| {
-					for i in night_entries.iter() {
+					for i in night_entries.clone().iter() {
 						if i.craziness.user == User::Lostsaka {
 							let response = ui.add(egui::SelectableLabel::new(
 								false,
@@ -129,14 +154,18 @@ impl eframe::App for ImOk {
 									//TODO: edit the selected night
 								}
 								if ui.button("Delete").clicked() {
-									//TODO: delete the selected night
+									Self::delete_entry(
+										night_entries,
+										collection.clone(),
+										i.id.unwrap(),
+									);
 								}
 							});
 						}
 					}
 				});
 				egui::CollapsingHeader::new("Gkasma").show(ui, |ui| {
-					for i in night_entries.iter() {
+					for i in night_entries.clone().iter() {
 						if i.craziness.user == User::Gkasma {
 							let response = ui.add(egui::SelectableLabel::new(
 								false,
@@ -156,7 +185,11 @@ impl eframe::App for ImOk {
 									//TODO: edit the selected night
 								}
 								if ui.button("Delete").clicked() {
-									//TODO: delete the selected night
+									Self::delete_entry(
+										night_entries,
+										collection.clone(),
+										i.id.unwrap(),
+									);
 								}
 							});
 						}
@@ -164,10 +197,7 @@ impl eframe::App for ImOk {
 				});
 
 				if ui.add(egui::Button::new("Refresh")).clicked() {
-					night_entries.clear();
-					for i in Night::get_all_nights(collection).unwrap() {
-						night_entries.push(i.unwrap());
-					}
+					Self::refresh(night_entries, collection.clone());
 				}
 			});
 		});
