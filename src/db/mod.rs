@@ -41,10 +41,11 @@ impl Night {
 
 	pub fn edit_night(
 		collection: &mut mongodb::sync::Collection<Night>,
-		night: Night,
+		item_id: ObjectId,
+		craziness: Craziness,
 	) -> std::result::Result<UpdateResult, Error> {
-		let query = bson::doc! { "_id": night.id.unwrap() };
-		let doc = bson::to_document(&night.craziness).unwrap();
+		let query = bson::doc! { "_id": item_id };
+		let doc = bson::to_document(&craziness).unwrap();
 		let update = bson::doc! {"$set": { "craziness": doc }};
 		collection.update_one(query, update, None)
 	}
