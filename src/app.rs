@@ -37,7 +37,11 @@ impl Default for ImOk {
 
 		let client = Client::with_options(client_options).unwrap();
 
+		#[cfg(debug_assertions)]
 		let mut collection = client.database("im_ok").collection::<Night>("nights");
+		#[cfg(not(debug_assertions))]
+		let mut collection = client.database("im_ok_prod").collection::<Night>("nights");
+
 		let mut night_entries = Vec::new();
 		for i in Night::get_all_nights(&mut collection).unwrap() {
 			night_entries.push(i.unwrap());
