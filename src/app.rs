@@ -159,6 +159,7 @@ impl eframe::App for ImOk {
 										collection.clone(),
 										i.id.unwrap(),
 									);
+									ui.close_menu();
 								}
 							});
 						}
@@ -190,6 +191,7 @@ impl eframe::App for ImOk {
 										collection.clone(),
 										i.id.unwrap(),
 									);
+									ui.close_menu();
 								}
 							});
 						}
