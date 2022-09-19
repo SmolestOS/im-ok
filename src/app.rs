@@ -110,27 +110,56 @@ impl eframe::App for ImOk {
 			egui::ScrollArea::both().show(ui, |ui| {
 				egui::CollapsingHeader::new("Lostsaka").show(ui, |ui| {
 					for i in night_entries.iter() {
-						if i.craziness.user == User::Lostsaka &&
-							ui.button(format!(
-								"{} {}/{}/{}",
-								i.craziness.date.weekday(),
-								i.craziness.date.day(),
-								i.craziness.date.month(),
-								i.craziness.date.year()
-							))
-							.clicked()
-						{
-							*selected_night = Some(i.clone());
-						};
+						if i.craziness.user == User::Lostsaka {
+							let response = ui.add(egui::SelectableLabel::new(
+								false,
+								format!(
+									"{} {}/{}/{}",
+									i.craziness.date.weekday(),
+									i.craziness.date.day(),
+									i.craziness.date.month(),
+									i.craziness.date.year()
+								),
+							));
+							if response.clicked() {
+								*selected_night = Some(i.clone());
+							}
+							response.context_menu(|ui| {
+								if ui.button("Edit").clicked() {
+									//TODO: edit the selected night
+								}
+								if ui.button("Delete").clicked() {
+									//TODO: delete the selected night
+								}
+							});
+						}
 					}
 				});
 				egui::CollapsingHeader::new("Gkasma").show(ui, |ui| {
 					for i in night_entries.iter() {
-						if i.craziness.user == User::Gkasma &&
-							ui.button(format!("{:?}", i.craziness.location)).clicked()
-						{
-							*selected_night = Some(i.clone());
-						};
+						if i.craziness.user == User::Gkasma {
+							let response = ui.add(egui::SelectableLabel::new(
+								false,
+								format!(
+									"{} {}/{}/{}",
+									i.craziness.date.weekday(),
+									i.craziness.date.day(),
+									i.craziness.date.month(),
+									i.craziness.date.year()
+								),
+							));
+							if response.clicked() {
+								*selected_night = Some(i.clone());
+							}
+							response.context_menu(|ui| {
+								if ui.button("Edit").clicked() {
+									//TODO: edit the selected night
+								}
+								if ui.button("Delete").clicked() {
+									//TODO: delete the selected night
+								}
+							});
+						}
 					}
 				});
 
