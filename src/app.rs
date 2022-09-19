@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::{
 	datepicker::DatePicker,
 	db::Night,
@@ -21,10 +23,10 @@ pub struct ImOk {
 	#[serde(skip)]
 	other_city: String,
 	#[serde(skip)]
-	night_entries: Vec<Night>,
+	night_entries: HashMap<ObjectId, Craziness>,
 
 	#[serde(skip)]
-	selected_night: Option<Night>,
+	selected_night: Option<(ObjectId, Craziness)>,
 }
 
 impl Default for ImOk {
@@ -42,9 +44,9 @@ impl Default for ImOk {
 		#[cfg(not(debug_assertions))]
 		let mut collection = client.database("im_ok_prod").collection::<Night>("nights");
 
-		let mut night_entries = Vec::new();
+		let mut night_entries = HashMap::<ObjectId, Craziness>::new();
 		for i in Night::get_all_nights(&mut collection).unwrap() {
-			night_entries.push(i.unwrap());
+			night_entries.insert(i.as_ref().unwrap().id.unwrap(), i.unwrap().craziness);
 		}
 
 		Self {
@@ -61,22 +63,22 @@ impl Default for ImOk {
 impl ImOk {
 	/// Helper function for updating the `night_entries`
 	pub fn refresh(
-		night_entries: &mut Vec<Night>,
+		night_entries: &mut HashMap<ObjectId, Craziness>,
 		mut collection: mongodb::sync::Collection<Night>,
 	) {
-		night_entries.clear();
 		for i in Night::get_all_nights(&mut collection).unwrap() {
-			night_entries.push(i.unwrap());
+			night_entries.insert(i.as_ref().unwrap().id.unwrap(), i.unwrap().craziness);
 		}
 	}
 
 	pub fn delete_entry(
-		night_entries: &mut Vec<Night>,
+		night_entries: &mut HashMap<ObjectId, Craziness>,
 		mut collection: mongodb::sync::Collection<Night>,
 		id: ObjectId,
 	) {
 		Night::delete_night(&mut collection, id)
 			.map(|_| {
+				night_entries.remove(&id).unwrap();
 				Self::refresh(night_entries, collection.clone());
 				Ok::<(), Error>(())
 			})
@@ -139,30 +141,26 @@ impl eframe::App for ImOk {
 			egui::ScrollArea::both().show(ui, |ui| {
 				egui::CollapsingHeader::new("Lostsaka").show(ui, |ui| {
 					for i in night_entries.clone().iter() {
-						if i.craziness.user == User::Lostsaka {
+						if i.1.user == User::Lostsaka {
 							let response = ui.add(egui::SelectableLabel::new(
 								false,
 								format!(
 									"{} {}/{}/{}",
-									i.craziness.date.weekday(),
-									i.craziness.date.day(),
-									i.craziness.date.month(),
-									i.craziness.date.year()
+									i.1.date.weekday(),
+									i.1.date.day(),
+									i.1.date.month(),
+									i.1.date.year()
 								),
 							));
 							if response.clicked() {
-								*selected_night = Some(i.clone());
+								*selected_night = Some((*i.0, i.1.clone()));
 							}
 							response.context_menu(|ui| {
 								if ui.button("Edit").clicked() {
 									//TODO: edit the selected night
 								}
 								if ui.button("Delete").clicked() {
-									Self::delete_entry(
-										night_entries,
-										collection.clone(),
-										i.id.unwrap(),
-									);
+									Self::delete_entry(night_entries, collection.clone(), *i.0);
 									ui.close_menu();
 								}
 							});
@@ -171,30 +169,26 @@ impl eframe::App for ImOk {
 				});
 				egui::CollapsingHeader::new("Gkasma").show(ui, |ui| {
 					for i in night_entries.clone().iter() {
-						if i.craziness.user == User::Gkasma {
+						if i.1.user == User::Gkasma {
 							let response = ui.add(egui::SelectableLabel::new(
 								false,
 								format!(
 									"{} {}/{}/{}",
-									i.craziness.date.weekday(),
-									i.craziness.date.day(),
-									i.craziness.date.month(),
-									i.craziness.date.year()
+									i.1.date.weekday(),
+									i.1.date.day(),
+									i.1.date.month(),
+									i.1.date.year()
 								),
 							));
 							if response.clicked() {
-								*selected_night = Some(i.clone());
+								*selected_night = Some((*i.0, i.1.clone()));
 							}
 							response.context_menu(|ui| {
 								if ui.button("Edit").clicked() {
 									//TODO: edit the selected night
 								}
 								if ui.button("Delete").clicked() {
-									Self::delete_entry(
-										night_entries,
-										collection.clone(),
-										i.id.unwrap(),
-									);
+									Self::delete_entry(night_entries, collection.clone(), *i.0);
 									ui.close_menu();
 								}
 							});
@@ -212,43 +206,34 @@ impl eframe::App for ImOk {
 		if selected_night.is_some() {
 			egui::CentralPanel::default().show(ctx, |ui| {
 				// The central panel the region left after adding TopPanel's and SidePanel's
-				ui.heading(format!("{:?}", selected_night.as_ref().unwrap().craziness.user));
+				ui.heading(format!("{:?}", selected_night.as_ref().unwrap().1.user));
 
 				ui.separator();
 
 				ui.heading(format!(
 					"Drunk level: {:?}",
-					selected_night.as_ref().unwrap().craziness.drunkness
+					selected_night.as_ref().unwrap().1.drunkness
 				));
 
 				ui.separator();
 
-				ui.heading(format!(
-					"City: {}",
-					selected_night.as_ref().unwrap().craziness.location
-				));
+				ui.heading(format!("City: {}", selected_night.as_ref().unwrap().1.location));
 
 				ui.separator();
 
 				ui.heading("Night Activities");
 				ui.add_enabled(
 					false,
-					Checkbox::new(
-						&mut selected_night.as_ref().unwrap().craziness.coitus.clone(),
-						"Coitus",
-					),
+					Checkbox::new(&mut selected_night.as_ref().unwrap().1.coitus.clone(), "Coitus"),
+				);
+				ui.add_enabled(
+					false,
+					Checkbox::new(&mut selected_night.as_ref().unwrap().1.drive.clone(), "Driven"),
 				);
 				ui.add_enabled(
 					false,
 					Checkbox::new(
-						&mut selected_night.as_ref().unwrap().craziness.drive.clone(),
-						"Driven",
-					),
-				);
-				ui.add_enabled(
-					false,
-					Checkbox::new(
-						&mut selected_night.as_ref().unwrap().craziness.talked_2x.clone(),
+						&mut selected_night.as_ref().unwrap().1.talked_2x.clone(),
 						"Talked_2x",
 					),
 				);
@@ -258,7 +243,7 @@ impl eframe::App for ImOk {
 				ui.add_enabled(
 					false,
 					TextEdit::multiline(
-						&mut selected_night.as_ref().unwrap().craziness.description.clone(),
+						&mut selected_night.as_ref().unwrap().1.description.clone(),
 					),
 				);
 
@@ -266,7 +251,7 @@ impl eframe::App for ImOk {
 				ui.heading("Date");
 				ui.add(DatePicker::new(
 					"date_picker",
-					&mut selected_night.as_ref().unwrap().craziness.date.clone(),
+					&mut selected_night.as_ref().unwrap().1.date.clone(),
 				));
 
 				// Submit entry to database
