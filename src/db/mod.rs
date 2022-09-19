@@ -37,6 +37,6 @@ impl Night {
 		item_id: ObjectId,
 	) -> std::result::Result<DeleteResult, Error> {
 		// Convert `captain_marvel` to a Bson instance:
-		collection.delete_one(bson::doc! {"id": item_id }, None)
+		collection.delete_one(bson::doc! {"_id": item_id }, None)
 	}
 }
