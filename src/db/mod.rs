@@ -3,7 +3,7 @@ use mongodb::{
 	bson::oid::ObjectId,
 	error::Error,
 	options::FindOptions,
-	results::{DeleteResult, InsertOneResult},
+	results::{DeleteResult, InsertOneResult, UpdateResult},
 	sync::Cursor,
 };
 use serde::{Deserialize, Serialize};
@@ -31,12 +31,21 @@ impl Night {
 		collection.find(None, find_options)
 	}
 
-	#[allow(dead_code)]
 	pub fn delete_night(
 		collection: &mut mongodb::sync::Collection<Night>,
 		item_id: ObjectId,
 	) -> std::result::Result<DeleteResult, Error> {
 		// Convert `captain_marvel` to a Bson instance:
 		collection.delete_one(bson::doc! {"_id": item_id }, None)
+	}
+
+	pub fn edit_night(
+		collection: &mut mongodb::sync::Collection<Night>,
+		night: Night,
+	) -> std::result::Result<UpdateResult, Error> {
+		let query = bson::doc! { "_id": night.id.unwrap() };
+		let doc = bson::to_document(&night.craziness).unwrap();
+		let update = bson::doc! {"$set": { "craziness": doc }};
+		collection.update_one(query, update, None)
 	}
 }
