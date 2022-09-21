@@ -17,15 +17,10 @@ pub struct ImOk {
 	// this how you opt-out of serialization of a member
 	#[serde(skip)]
 	nights_collection: mongodb::sync::Collection<Night>,
-	#[serde(skip)]
 	craziness: Craziness,
-	#[serde(skip)]
 	other_city: String,
-	#[serde(skip)]
 	night_entries: BTreeMap<ObjectId, Craziness>,
-	#[serde(skip)]
 	selected_night: Option<(ObjectId, Craziness)>,
-	#[serde(skip)]
 	appstate: AppState,
 }
 
@@ -584,6 +579,7 @@ impl eframe::App for ImOk {
 				});
 			},
 		}
+
 
 		if false {
 			egui::Window::new("Window").show(ctx, |ui| {
