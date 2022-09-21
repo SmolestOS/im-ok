@@ -30,6 +30,18 @@ impl Default for Drunkness {
 		Self::Cool
 	}
 }
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
+pub enum Mode {
+	Editing,
+	Viewing,
+	Submit,
+}
+
+impl Default for Mode {
+	fn default() -> Self {
+		Self::Submit
+	}
+}
 
 /// A struct to track the result of the night
 #[derive(Serialize, Deserialize, Debug, Clone)]
