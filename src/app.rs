@@ -580,7 +580,6 @@ impl eframe::App for ImOk {
 			},
 		}
 
-
 		if false {
 			egui::Window::new("Window").show(ctx, |ui| {
 				ui.label("Windows can be moved by dragging them.");
