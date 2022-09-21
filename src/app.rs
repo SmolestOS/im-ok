@@ -16,14 +16,9 @@ pub struct ImOk {
 	// this how you opt-out of serialization of a member
 	#[serde(skip)]
 	nights_collection: mongodb::sync::Collection<Night>,
-	#[serde(skip)]
 	craziness: Craziness,
-	#[serde(skip)]
 	other_city: String,
-	#[serde(skip)]
 	night_entries: Vec<Night>,
-
-	#[serde(skip)]
 	selected_night: Option<Night>,
 }
 
@@ -37,7 +32,11 @@ impl Default for ImOk {
 
 		let client = Client::with_options(client_options).unwrap();
 
+		#[cfg(debug_assertions)]
 		let mut collection = client.database("im_ok").collection::<Night>("nights");
+		#[cfg(not(debug_assertions))]
+		let mut collection = client.database("im_ok_prod").collection::<Night>("nights");
+
 		let mut night_entries = Vec::new();
 		for i in Night::get_all_nights(&mut collection).unwrap() {
 			night_entries.push(i.unwrap());
@@ -127,7 +126,14 @@ impl eframe::App for ImOk {
 				egui::CollapsingHeader::new("Gkasma").show(ui, |ui| {
 					for i in night_entries.iter() {
 						if i.craziness.user == User::Gkasma &&
-							ui.button(format!("{:?}", i.craziness.location)).clicked()
+							ui.button(format!(
+								"{} {}/{}/{}",
+								i.craziness.date.weekday(),
+								i.craziness.date.day(),
+								i.craziness.date.month(),
+								i.craziness.date.year()
+							))
+							.clicked()
 						{
 							*selected_night = Some(i.clone());
 						};
