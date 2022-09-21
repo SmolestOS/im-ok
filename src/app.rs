@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use crate::{
 	datepicker::DatePicker,
 	db::Night,
-	models::{Craziness, Drunkness, AppState, User},
+	models::{AppState, Craziness, Drunkness, User},
 };
 use bson::{doc, oid::ObjectId};
 use chrono::Datelike;
@@ -56,7 +56,7 @@ impl Default for ImOk {
 			other_city: String::new(),
 			night_entries,
 			selected_night: None,
-		    appstate: AppState::default(),
+			appstate: AppState::default(),
 		}
 	}
 }
