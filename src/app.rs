@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use crate::{
 	datepicker::DatePicker,
 	db::Night,
-	models::{Craziness, Drunkness, User},
+	models::{Craziness, Drunkness, Mode, User},
 };
 use bson::{doc, oid::ObjectId};
 use chrono::Datelike;
@@ -23,11 +23,10 @@ pub struct ImOk {
 	other_city: String,
 	#[serde(skip)]
 	night_entries: BTreeMap<ObjectId, Craziness>,
-
 	#[serde(skip)]
 	selected_night: Option<(ObjectId, Craziness)>,
 	#[serde(skip)]
-	editing: bool,
+	mode: Mode,
 }
 
 impl Default for ImOk {
@@ -57,7 +56,7 @@ impl Default for ImOk {
 			other_city: String::new(),
 			night_entries,
 			selected_night: None,
-			editing: false,
+			mode: Mode::default(),
 		}
 	}
 }
@@ -107,10 +106,14 @@ impl ImOk {
 		collection: mongodb::sync::Collection<Night>,
 		craziness: &mut Craziness,
 		other_city: &String,
-		editing: bool,
+		mode: Mode,
 	) {
 		egui::CentralPanel::default().show(ctx, |ui| {
-			ui.set_enabled(editing);
+			if mode == Mode::Viewing {
+				ui.set_enabled(false);
+			} else {
+				ui.set_enabled(true);
+			}
 
 			// The central panel the region left after adding TopPanel's and SidePanel's
 			ui.heading("Users");
@@ -206,7 +209,7 @@ impl eframe::App for ImOk {
 			other_city,
 			night_entries,
 			selected_night,
-			editing,
+			mode,
 		} = self;
 
 		// Examples of how to create different panels and windows.
@@ -245,10 +248,12 @@ impl eframe::App for ImOk {
 							));
 							if response.clicked() {
 								*selected_night = Some((*i.0, i.1.clone()));
+								*mode = Mode::Viewing;
 							}
 							response.context_menu(|ui| {
 								if ui.button("Edit").clicked() {
-									*editing = true;
+									*mode = Mode::Editing;
+									ui.close_menu();
 								}
 								if ui.button("Delete").clicked() {
 									Self::delete_entry(night_entries, collection.clone(), *i.0);
@@ -258,6 +263,7 @@ impl eframe::App for ImOk {
 						}
 					}
 				});
+
 				egui::CollapsingHeader::new("Gkasma").show(ui, |ui| {
 					for i in night_entries.clone().iter() {
 						if i.1.user == User::Gkasma {
@@ -273,10 +279,12 @@ impl eframe::App for ImOk {
 							));
 							if response.clicked() {
 								*selected_night = Some((*i.0, i.1.clone()));
+								*mode = Mode::Viewing;
 							}
 							response.context_menu(|ui| {
 								if ui.button("Edit").clicked() {
-									*editing = true;
+									*mode = Mode::Editing;
+									ui.close_menu();
 								}
 								if ui.button("Delete").clicked() {
 									Self::delete_entry(night_entries, collection.clone(), *i.0);
@@ -292,67 +300,25 @@ impl eframe::App for ImOk {
 				}
 			});
 		});
+		egui::TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
+			if *mode == Mode::Viewing && ui.button("Exit viewing mode").clicked() {
+				*mode = Mode::Submit;
+			}
+			if *mode == Mode::Editing && ui.button("Exit edit mode").clicked() {
+				*mode = Mode::Submit;
+			}
+		});
 
-		// VIEWING MODE
-		// if selected_night.is_some() {
-		// 	egui::CentralPanel::default().show(ctx, |ui| {
-		// 		// The central panel the region left after adding TopPanel's and SidePanel's
-		// 		ui.heading(format!("{:?}", selected_night.as_ref().unwrap().1.user));
-
-		// 		ui.separator();
-
-		// 		ui.heading(format!(
-		// 			"Drunk level: {:?}",
-		// 			selected_night.as_ref().unwrap().1.drunkness
-		// 		));
-
-		// 		ui.separator();
-
-		// 		ui.heading(format!("City: {}", selected_night.as_ref().unwrap().1.location));
-
-		// 		ui.separator();
-
-		// 		ui.heading("Night Activities");
-		// 		ui.add_enabled(
-		// 			false,
-		// 			Checkbox::new(&mut selected_night.as_ref().unwrap().1.coitus.clone(), "Coitus"),
-		// 		);
-		// 		ui.add_enabled(
-		// 			false,
-		// 			Checkbox::new(&mut selected_night.as_ref().unwrap().1.drive.clone(), "Driven"),
-		// 		);
-		// 		ui.add_enabled(
-		// 			false,
-		// 			Checkbox::new(
-		// 				&mut selected_night.as_ref().unwrap().1.talked_2x.clone(),
-		// 				"Talked_2x",
-		// 			),
-		// 		);
-
-		// 		ui.separator();
-		// 		ui.heading("Description");
-		// 		ui.add_enabled(
-		// 			false,
-		// 			TextEdit::multiline(
-		// 				&mut selected_night.as_ref().unwrap().1.description.clone(),
-		// 			),
-		// 		);
-
-		// 		ui.separator();
-		// 		ui.heading("Date");
-		// 		ui.add(DatePicker::new(
-		// 			"date_picker",
-		// 			&mut selected_night.as_ref().unwrap().1.date.clone(),
-		// 		));
-
-		// 		// Submit entry to database
-		// 		if ui.add(egui::Button::new("Exit viewing mode")).clicked() {
-		// 			*selected_night = None;
-		// 		}
-		// 	});
-		// }
-
-		Self::draw_central_panel(ctx, collection.clone(), craziness, other_city, *editing);
+		Self::draw_central_panel(ctx, collection.clone(), craziness, other_city, *mode);
+		if *mode == Mode::Viewing {
+			Self::draw_central_panel(
+				ctx,
+				collection.clone(),
+				&mut selected_night.as_ref().unwrap().1.clone(),
+				other_city,
+				*mode,
+			);
+		}
 
 		if false {
 			egui::Window::new("Window").show(ctx, |ui| {
