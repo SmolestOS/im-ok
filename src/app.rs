@@ -5,7 +5,7 @@ use crate::{
 };
 use bson::doc;
 use chrono::Datelike;
-use egui::{Checkbox, TextEdit, util::cache};
+use egui::{Checkbox, TextEdit};
 use mongodb::{options::ClientOptions, sync::Client};
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
