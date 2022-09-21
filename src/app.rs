@@ -370,41 +370,79 @@ impl eframe::App for ImOk {
 			AppState::Viewing => {
 				egui::CentralPanel::default().show(ctx, |ui| {
 					ui.set_enabled(false);
-
 					// The central panel the region left after adding TopPanel's and SidePanel's
 					ui.heading("Users");
 					egui::ComboBox::from_id_source("my-box")
-						.selected_text(format!("{:?}", craziness.user))
+						.selected_text(format!("{:?}", selected_night.as_ref().unwrap().1.user))
 						.show_ui(ui, |ui| {
-							ui.selectable_value(&mut craziness.user, User::Lostsaka, "Lostsaka");
-							ui.selectable_value(&mut craziness.user, User::Gkasma, "Gkasma");
+							ui.selectable_value(
+								&mut selected_night.as_mut().unwrap().1.user,
+								User::Lostsaka,
+								"Lostsaka",
+							);
+							ui.selectable_value(
+								&mut selected_night.as_mut().unwrap().1.user,
+								User::Gkasma,
+								"Gkasma",
+							);
 						});
 					ui.separator();
 					ui.heading("Drunk levels");
 					egui::ComboBox::from_id_source("my-box2")
-						.selected_text(format!("{:?}", craziness.drunkness))
+						.selected_text(format!(
+							"{:?}",
+							selected_night.as_mut().unwrap().1.drunkness
+						))
 						.show_ui(ui, |ui| {
-							ui.selectable_value(&mut craziness.drunkness, Drunkness::Cool, "Cool");
 							ui.selectable_value(
-								&mut craziness.drunkness,
+								&mut selected_night.as_mut().unwrap().1.drunkness,
+								Drunkness::Cool,
+								"Cool",
+							);
+							ui.selectable_value(
+								&mut selected_night.as_mut().unwrap().1.drunkness,
 								Drunkness::LittleHead,
 								"LittleHead",
 							);
 							ui.selectable_value(
-								&mut craziness.drunkness,
+								&mut selected_night.as_mut().unwrap().1.drunkness,
 								Drunkness::Bream,
 								"Bream",
 							);
-							ui.selectable_value(&mut craziness.drunkness, Drunkness::Gnat, "Gnat");
-							ui.selectable_value(&mut craziness.drunkness, Drunkness::Ant, "Ant");
-							ui.selectable_value(&mut craziness.drunkness, Drunkness::ImOk, "ImOk");
+							ui.selectable_value(
+								&mut selected_night.as_mut().unwrap().1.drunkness,
+								Drunkness::Gnat,
+								"Gnat",
+							);
+							ui.selectable_value(
+								&mut selected_night.as_mut().unwrap().1.drunkness,
+								Drunkness::Ant,
+								"Ant",
+							);
+							ui.selectable_value(
+								&mut selected_night.as_mut().unwrap().1.drunkness,
+								Drunkness::ImOk,
+								"ImOk",
+							);
 						});
 
 					ui.separator();
 					ui.heading("City");
-					ui.radio_value(&mut craziness.location, "Athens".to_string(), "Athens");
-					ui.radio_value(&mut craziness.location, "Korinthos".to_string(), "Korinthos");
-					ui.radio_value(&mut craziness.location, "Other".to_string(), "Other");
+					ui.radio_value(
+						&mut selected_night.as_mut().unwrap().1.location,
+						"Athens".to_string(),
+						"Athens",
+					);
+					ui.radio_value(
+						&mut selected_night.as_mut().unwrap().1.location,
+						"Korinthos".to_string(),
+						"Korinthos",
+					);
+					ui.radio_value(
+						&mut selected_night.as_mut().unwrap().1.location,
+						"Other".to_string(),
+						"Other",
+					);
 
 					if craziness.location == *"Other".to_string() {
 						ui.label("Enter your city: ");
@@ -418,36 +456,46 @@ impl eframe::App for ImOk {
 					ui.checkbox(&mut craziness.talked_2x, "Talked_2x");
 
 					ui.separator();
-					ui.text_edit_multiline(&mut craziness.description);
+					ui.text_edit_multiline(&mut selected_night.as_mut().unwrap().1.description);
 
 					ui.separator();
 					ui.heading("Date");
-					ui.add(DatePicker::new("date_picker", &mut craziness.date));
+					ui.add(DatePicker::new(
+						"date_picker",
+						&mut selected_night.as_mut().unwrap().1.date,
+					));
 
 					// Submit entry to database
 					ui.separator();
-					if ui.add(egui::Button::new("Submit")).clicked() {
+					if ui.add(egui::Button::new("Save")).clicked() {
 						// if `other_city` is not empty, replace
 						// `craziness.location` with the other city
 						// or else the location on the database will be "Other". - @charmitro
 						if other_city.is_empty() {
-							let night = Night { id: None, craziness: craziness.clone() };
-							Night::create_night(&mut collection.clone(), night).unwrap();
+							let night = Night {
+								id: Some(selected_night.as_ref().unwrap().0),
+								craziness: selected_night.as_ref().unwrap().1.clone(),
+							};
+							Night::edit_night(
+								&mut collection.clone(),
+								night.id.unwrap(),
+								night.craziness,
+							)
+							.unwrap();
 						} else {
 							let night = Night {
 								id: None,
 								craziness: Craziness {
-									user: craziness.user,
-									drunkness: craziness.drunkness,
-									coitus: craziness.coitus,
-									drive: craziness.drive,
-									talked_2x: craziness.talked_2x,
 									location: other_city.to_string(),
-									description: craziness.description.clone(),
-									date: craziness.date,
+									..selected_night.as_ref().unwrap().1.clone()
 								},
 							};
-							Night::create_night(&mut collection.clone(), night).unwrap();
+							Self::edit_entry(
+								night_entries,
+								collection.clone(),
+								night.id.unwrap(),
+								night.craziness,
+							);
 						};
 					}
 				});
