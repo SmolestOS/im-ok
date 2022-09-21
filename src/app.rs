@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use crate::{
 	datepicker::DatePicker,
 	db::Night,
-	models::{Craziness, Drunkness, Mode, User},
+	models::{Craziness, Drunkness, AppState, User},
 };
 use bson::{doc, oid::ObjectId};
 use chrono::Datelike;
@@ -26,7 +26,7 @@ pub struct ImOk {
 	#[serde(skip)]
 	selected_night: Option<(ObjectId, Craziness)>,
 	#[serde(skip)]
-	mode: Mode,
+	appstate: AppState,
 }
 
 impl Default for ImOk {
@@ -56,7 +56,7 @@ impl Default for ImOk {
 			other_city: String::new(),
 			night_entries,
 			selected_night: None,
-			mode: Mode::default(),
+		    appstate: AppState::default(),
 		}
 	}
 }
@@ -106,10 +106,10 @@ impl ImOk {
 		collection: mongodb::sync::Collection<Night>,
 		craziness: &mut Craziness,
 		other_city: &String,
-		mode: &Mode,
+		appstate: &AppState,
 	) {
 		egui::CentralPanel::default().show(ctx, |ui| {
-			if mode == &Mode::Viewing {
+			if appstate == &AppState::Viewing {
 				ui.set_enabled(false);
 			} else {
 				ui.set_enabled(true);
@@ -209,7 +209,7 @@ impl eframe::App for ImOk {
 			other_city,
 			night_entries,
 			selected_night,
-			mode,
+			appstate,
 		} = self;
 
 		// Examples of how to create different panels and windows.
@@ -248,11 +248,11 @@ impl eframe::App for ImOk {
 							));
 							if response.clicked() {
 								*selected_night = Some((*i.0, i.1.clone()));
-								*mode = Mode::Viewing;
+								*appstate = AppState::Viewing;
 							}
 							response.context_menu(|ui| {
 								if ui.button("Edit").clicked() {
-									*mode = Mode::Editing;
+									*appstate = AppState::Editing;
 									ui.close_menu();
 								}
 								if ui.button("Delete").clicked() {
@@ -279,11 +279,11 @@ impl eframe::App for ImOk {
 							));
 							if response.clicked() {
 								*selected_night = Some((*i.0, i.1.clone()));
-								*mode = Mode::Viewing;
+								*appstate = AppState::Viewing;
 							}
 							response.context_menu(|ui| {
 								if ui.button("Edit").clicked() {
-									*mode = Mode::Editing;
+									*appstate = AppState::Editing;
 									ui.close_menu();
 								}
 								if ui.button("Delete").clicked() {
@@ -301,22 +301,22 @@ impl eframe::App for ImOk {
 			});
 		});
 		egui::TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
-			if *mode == Mode::Viewing && ui.button("Exit viewing mode").clicked() {
-				*mode = Mode::Submit;
+			if *appstate == AppState::Viewing && ui.button("Exit viewing mode").clicked() {
+				*appstate = AppState::Submit;
 			}
-			if *mode == Mode::Editing && ui.button("Exit edit mode").clicked() {
-				*mode = Mode::Submit;
+			if *appstate == AppState::Editing && ui.button("Exit edit mode").clicked() {
+				*appstate = AppState::Submit;
 			}
 		});
 
-		Self::draw_central_panel(ctx, collection.clone(), craziness, other_city, mode);
-		if *mode == Mode::Viewing {
+		Self::draw_central_panel(ctx, collection.clone(), craziness, other_city, appstate);
+		if *appstate == AppState::Viewing {
 			Self::draw_central_panel(
 				ctx,
 				collection.clone(),
 				&mut selected_night.as_ref().unwrap().1.clone(),
 				other_city,
-				mode,
+				appstate,
 			);
 		}
 

@@ -31,13 +31,13 @@ impl Default for Drunkness {
 	}
 }
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
-pub enum Mode {
+pub enum AppState {
 	Editing,
 	Viewing,
 	Submit,
 }
 
-impl Default for Mode {
+impl Default for AppState {
 	fn default() -> Self {
 		Self::Submit
 	}
@@ -51,7 +51,6 @@ pub struct Craziness {
 	pub coitus: bool,
 	pub drive: bool,
 	pub talked_2x: bool,
-	//pub date: Date<Utc>,
 	pub location: String,
 	pub description: String,
 	pub date: DateTime<Local>,
