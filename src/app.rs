@@ -16,14 +16,9 @@ pub struct ImOk {
 	// this how you opt-out of serialization of a member
 	#[serde(skip)]
 	nights_collection: mongodb::sync::Collection<Night>,
-	#[serde(skip)]
 	craziness: Craziness,
-	#[serde(skip)]
 	other_city: String,
-	#[serde(skip)]
 	night_entries: Vec<Night>,
-
-	#[serde(skip)]
 	selected_night: Option<Night>,
 }
 
