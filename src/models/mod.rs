@@ -30,6 +30,18 @@ impl Default for Drunkness {
 		Self::Cool
 	}
 }
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
+pub enum AppState {
+	Editing,
+	Viewing,
+	Submit,
+}
+
+impl Default for AppState {
+	fn default() -> Self {
+		Self::Submit
+	}
+}
 
 /// A struct to track the result of the night
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -39,7 +51,6 @@ pub struct Craziness {
 	pub coitus: bool,
 	pub drive: bool,
 	pub talked_2x: bool,
-	//pub date: Date<Utc>,
 	pub location: String,
 	pub description: String,
 	pub date: DateTime<Local>,
