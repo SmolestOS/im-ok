@@ -106,10 +106,10 @@ impl ImOk {
 		collection: mongodb::sync::Collection<Night>,
 		craziness: &mut Craziness,
 		other_city: &String,
-		mode: Mode,
+		mode: &Mode,
 	) {
 		egui::CentralPanel::default().show(ctx, |ui| {
-			if mode == Mode::Viewing {
+			if mode == &Mode::Viewing {
 				ui.set_enabled(false);
 			} else {
 				ui.set_enabled(true);
@@ -309,14 +309,14 @@ impl eframe::App for ImOk {
 			}
 		});
 
-		Self::draw_central_panel(ctx, collection.clone(), craziness, other_city, *mode);
+		Self::draw_central_panel(ctx, collection.clone(), craziness, other_city, mode);
 		if *mode == Mode::Viewing {
 			Self::draw_central_panel(
 				ctx,
 				collection.clone(),
 				&mut selected_night.as_ref().unwrap().1.clone(),
 				other_city,
-				*mode,
+				mode,
 			);
 		}
 
