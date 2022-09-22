@@ -306,16 +306,16 @@ impl eframe::App for ImOk {
 						"Other",
 					);
 
-					if craziness.location == *"Other".to_string() {
+					if selected_night.as_mut().unwrap().1.location == *"Other".to_string() {
 						ui.label("Enter your city: ");
 						ui.text_edit_singleline(&mut other_city.to_string());
 					}
 
 					ui.separator();
 					ui.heading("Night Activities");
-					ui.checkbox(&mut craziness.coitus, "Coitus");
-					ui.checkbox(&mut craziness.drive, "Driven");
-					ui.checkbox(&mut craziness.talked_2x, "Talked_2x");
+					ui.checkbox(&mut selected_night.as_mut().unwrap().1.coitus, "Coitus");
+					ui.checkbox(&mut selected_night.as_mut().unwrap().1.drive, "Driven");
+					ui.checkbox(&mut selected_night.as_mut().unwrap().1.talked_2x, "Talked_2x");
 
 					ui.separator();
 					ui.text_edit_multiline(&mut selected_night.as_mut().unwrap().1.description);
@@ -362,6 +362,7 @@ impl eframe::App for ImOk {
 					}
 				});
 			},
+
 			AppState::Viewing => {
 				egui::CentralPanel::default().show(ctx, |ui| {
 					ui.set_enabled(false);
@@ -446,9 +447,9 @@ impl eframe::App for ImOk {
 
 					ui.separator();
 					ui.heading("Night Activities");
-					ui.checkbox(&mut craziness.coitus, "Coitus");
-					ui.checkbox(&mut craziness.drive, "Driven");
-					ui.checkbox(&mut craziness.talked_2x, "Talked_2x");
+					ui.checkbox(&mut selected_night.as_mut().unwrap().1.coitus, "Coitus");
+					ui.checkbox(&mut selected_night.as_mut().unwrap().1.drive, "Driven");
+					ui.checkbox(&mut selected_night.as_mut().unwrap().1.talked_2x, "Talked_2x");
 
 					ui.separator();
 					ui.text_edit_multiline(&mut selected_night.as_mut().unwrap().1.description);
@@ -459,40 +460,6 @@ impl eframe::App for ImOk {
 						"date_picker",
 						&mut selected_night.as_mut().unwrap().1.date,
 					));
-
-					// Submit entry to database
-					ui.separator();
-					if ui.add(egui::Button::new("Save")).clicked() {
-						// if `other_city` is not empty, replace
-						// `craziness.location` with the other city
-						// or else the location on the database will be "Other". - @charmitro
-						if other_city.is_empty() {
-							let night = Night {
-								id: Some(selected_night.as_ref().unwrap().0),
-								craziness: selected_night.as_ref().unwrap().1.clone(),
-							};
-							Night::edit_night(
-								&mut collection.clone(),
-								night.id.unwrap(),
-								night.craziness,
-							)
-							.unwrap();
-						} else {
-							let night = Night {
-								id: None,
-								craziness: Craziness {
-									location: other_city.to_string(),
-									..selected_night.as_ref().unwrap().1.clone()
-								},
-							};
-							Self::edit_entry(
-								night_entries,
-								collection.clone(),
-								night.id.unwrap(),
-								night.craziness,
-							);
-						};
-					}
 				});
 			},
 			AppState::Submit => {
