@@ -327,7 +327,7 @@ impl eframe::App for ImOk {
 						&mut selected_night.as_mut().unwrap().1.date,
 					));
 
-					// Submit entry to database
+					// Update entry to database
 					ui.separator();
 					if ui.add(egui::Button::new("Save")).clicked() {
 						// if `other_city` is not empty, replace
@@ -346,7 +346,7 @@ impl eframe::App for ImOk {
 							);
 						} else {
 							let night = Night {
-								id: None,
+								id: Some(selected_night.as_ref().unwrap().0),
 								craziness: Craziness {
 									location: other_city.to_string(),
 									..selected_night.as_ref().unwrap().1.clone()
@@ -365,100 +365,59 @@ impl eframe::App for ImOk {
 
 			AppState::Viewing => {
 				egui::CentralPanel::default().show(ctx, |ui| {
-					ui.set_enabled(false);
 					// The central panel the region left after adding TopPanel's and SidePanel's
-					ui.heading("Users");
-					egui::ComboBox::from_id_source("my-box")
-						.selected_text(format!("{:?}", selected_night.as_ref().unwrap().1.user))
-						.show_ui(ui, |ui| {
-							ui.selectable_value(
-								&mut selected_night.as_mut().unwrap().1.user,
-								User::Lostsaka,
-								"Lostsaka",
-							);
-							ui.selectable_value(
-								&mut selected_night.as_mut().unwrap().1.user,
-								User::Gkasma,
-								"Gkasma",
-							);
-						});
-					ui.separator();
-					ui.heading("Drunk levels");
-					egui::ComboBox::from_id_source("my-box2")
-						.selected_text(format!(
-							"{:?}",
-							selected_night.as_mut().unwrap().1.drunkness
-						))
-						.show_ui(ui, |ui| {
-							ui.selectable_value(
-								&mut selected_night.as_mut().unwrap().1.drunkness,
-								Drunkness::Cool,
-								"Cool",
-							);
-							ui.selectable_value(
-								&mut selected_night.as_mut().unwrap().1.drunkness,
-								Drunkness::LittleHead,
-								"LittleHead",
-							);
-							ui.selectable_value(
-								&mut selected_night.as_mut().unwrap().1.drunkness,
-								Drunkness::Bream,
-								"Bream",
-							);
-							ui.selectable_value(
-								&mut selected_night.as_mut().unwrap().1.drunkness,
-								Drunkness::Gnat,
-								"Gnat",
-							);
-							ui.selectable_value(
-								&mut selected_night.as_mut().unwrap().1.drunkness,
-								Drunkness::Ant,
-								"Ant",
-							);
-							ui.selectable_value(
-								&mut selected_night.as_mut().unwrap().1.drunkness,
-								Drunkness::ImOk,
-								"ImOk",
-							);
-						});
+					ui.heading(format!("{:?}", selected_night.as_ref().unwrap().1.user));
 
 					ui.separator();
-					ui.heading("City");
-					ui.radio_value(
-						&mut selected_night.as_mut().unwrap().1.location,
-						"Athens".to_string(),
-						"Athens",
-					);
-					ui.radio_value(
-						&mut selected_night.as_mut().unwrap().1.location,
-						"Korinthos".to_string(),
-						"Korinthos",
-					);
-					ui.radio_value(
-						&mut selected_night.as_mut().unwrap().1.location,
-						"Other".to_string(),
-						"Other",
-					);
 
-					if craziness.location == *"Other".to_string() {
-						ui.label("Enter your city: ");
-						ui.text_edit_singleline(&mut other_city.to_string());
-					}
+					ui.heading(format!(
+						"Drunk level: {:?}",
+						selected_night.as_ref().unwrap().1.drunkness
+					));
 
 					ui.separator();
+
+					ui.heading(format!("City: {}", selected_night.as_ref().unwrap().1.location));
+
+					ui.separator();
+
 					ui.heading("Night Activities");
-					ui.checkbox(&mut selected_night.as_mut().unwrap().1.coitus, "Coitus");
-					ui.checkbox(&mut selected_night.as_mut().unwrap().1.drive, "Driven");
-					ui.checkbox(&mut selected_night.as_mut().unwrap().1.talked_2x, "Talked_2x");
+					ui.add_enabled(
+						false,
+						egui::Checkbox::new(
+							&mut selected_night.as_ref().unwrap().1.coitus.clone(),
+							"Coitus",
+						),
+					);
+					ui.add_enabled(
+						false,
+						egui::Checkbox::new(
+							&mut selected_night.as_ref().unwrap().1.drive.clone(),
+							"Driven",
+						),
+					);
+					ui.add_enabled(
+						false,
+						egui::Checkbox::new(
+							&mut selected_night.as_ref().unwrap().1.talked_2x.clone(),
+							"Talked_2x",
+						),
+					);
 
 					ui.separator();
-					ui.text_edit_multiline(&mut selected_night.as_mut().unwrap().1.description);
+					ui.heading("Description");
+					ui.add_enabled(
+						false,
+						egui::TextEdit::multiline(
+							&mut selected_night.as_ref().unwrap().1.description.clone(),
+						),
+					);
 
 					ui.separator();
 					ui.heading("Date");
 					ui.add(DatePicker::new(
 						"date_picker",
-						&mut selected_night.as_mut().unwrap().1.date,
+						&mut selected_night.as_ref().unwrap().1.date.clone(),
 					));
 				});
 			},
