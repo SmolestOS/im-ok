@@ -308,7 +308,7 @@ impl eframe::App for ImOk {
 
 					if selected_night.as_mut().unwrap().1.location == *"Other".to_string() {
 						ui.label("Enter your city: ");
-						ui.text_edit_singleline(&mut other_city.to_string());
+						ui.text_edit_singleline(other_city);
 					}
 
 					ui.separator();
@@ -460,7 +460,7 @@ impl eframe::App for ImOk {
 
 					if craziness.location == *"Other".to_string() {
 						ui.label("Enter your city: ");
-						ui.text_edit_singleline(&mut other_city.to_string());
+						ui.text_edit_singleline(other_city);
 					}
 
 					ui.separator();
