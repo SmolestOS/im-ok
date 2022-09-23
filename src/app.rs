@@ -338,12 +338,12 @@ impl eframe::App for ImOk {
 								id: Some(selected_night.as_ref().unwrap().0),
 								craziness: selected_night.as_ref().unwrap().1.clone(),
 							};
-							Night::edit_night(
-								&mut collection.clone(),
+							Self::edit_entry(
+								night_entries,
+								collection.clone(),
 								night.id.unwrap(),
 								night.craziness,
-							)
-							.unwrap();
+							);
 						} else {
 							let night = Night {
 								id: None,
