@@ -33,7 +33,6 @@ impl Night {
 		collection.find(None, find_options).await
 	}
 
-	#[allow(dead_code)]
 	pub async fn delete_night(
 		collection: mongodb::Collection<Night>,
 		item_id: ObjectId,
@@ -44,7 +43,7 @@ impl Night {
 
 	#[allow(dead_code)]
 	pub async fn edit_night(
-		collection: &mut mongodb::Collection<Night>,
+		collection: mongodb::Collection<Night>,
 		item_id: ObjectId,
 		craziness: Craziness,
 	) -> std::result::Result<UpdateResult, Error> {

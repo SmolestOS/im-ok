@@ -20,11 +20,11 @@ pub async fn create_night(
 	Json(payload): Json<Craziness>,
 	Extension(state): Extension<State>,
 ) -> impl IntoResponse {
-	let res =
+	let db_req =
 		Night::create_night(state.night_collection, Night { id: None, craziness: payload }).await;
 
-	match res {
-		Ok(id) => (StatusCode::CREATED, Json(id.inserted_id)),
+	match db_req {
+		Ok(res) => (StatusCode::CREATED, Json(res.inserted_id)),
 		Err(err) => (StatusCode::BAD_REQUEST, Json(Bson::String(err.to_string()))),
 	}
 }
@@ -33,11 +33,26 @@ pub async fn delete_night(
 	Path(params): Path<String>,
 	Extension(state): Extension<State>,
 ) -> impl IntoResponse {
-	let req =
+	let db_req =
 		Night::delete_night(state.night_collection, ObjectId::from_str(&params).unwrap()).await;
 
-	match req {
-		Ok(_res) => (StatusCode::CREATED, Json(Bson::String("Success".to_string()))),
+	match db_req {
+		Ok(_) => (StatusCode::CREATED, Json(Bson::String("Success".to_string()))),
+		Err(err) => (StatusCode::BAD_REQUEST, Json(Bson::String(err.to_string()))),
+	}
+}
+
+pub async fn edit_night(
+	Path(params): Path<String>,
+	Json(payload): Json<Craziness>,
+	Extension(state): Extension<State>,
+) -> impl IntoResponse {
+	let db_req =
+		Night::edit_night(state.night_collection, ObjectId::from_str(&params).unwrap(), payload)
+			.await;
+
+	match db_req {
+		Ok(_) => (StatusCode::CREATED, Json(Bson::String("Success".to_string()))),
 		Err(err) => (StatusCode::BAD_REQUEST, Json(Bson::String(err.to_string()))),
 	}
 }

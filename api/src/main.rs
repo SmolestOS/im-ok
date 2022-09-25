@@ -2,9 +2,9 @@ mod controllers;
 mod db;
 mod models;
 
-use crate::controllers::nights::{create_night, delete_night, get_all_nights};
+use crate::controllers::nights::{create_night, delete_night, edit_night, get_all_nights};
 use axum::{
-	routing::{delete, get, post},
+	routing::{delete, get, patch, post},
 	Router,
 };
 use controllers::user::create_user;
@@ -37,6 +37,7 @@ async fn main() {
 		.route("/nights", get(get_all_nights))
 		.route("/night", post(create_night))
 		.route("/night/:id", delete(delete_night))
+		.route("/night/:id", patch(edit_night))
 		.layer(AddExtensionLayer::new(State::new(collection)));
 
 	let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
