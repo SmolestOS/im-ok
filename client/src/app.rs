@@ -65,7 +65,7 @@ impl ImOk {
 		// Load previous app state (if any).
 		// Note that you must enable the `persistence` feature for this to work.
 		if let Some(storage) = cc.storage {
-			return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
+			return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default()
 		}
 
 		Default::default()
@@ -82,14 +82,12 @@ impl ImOk {
 	}
 
 	pub fn delete_entry(
-		night_entries: &mut BTreeMap<ObjectId, Craziness>,
-		mut collection: mongodb::sync::Collection<Night>,
+		_night_entries: &mut BTreeMap<ObjectId, Craziness>,
+		_collection: mongodb::sync::Collection<Night>,
 		id: ObjectId,
 	) {
 		thread::spawn(move || {
-			ureq::delete(&format!("http://localhost:3000/night/{}", id.to_string()))
-				.call()
-				.unwrap();
+			ureq::delete(&format!("http://localhost:3000/night/{}", id)).call().unwrap();
 		});
 
 		// Night::delete_night(&mut collection, id)
