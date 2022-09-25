@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, thread};
 
 use crate::{
 	datepicker::DatePicker,
@@ -65,7 +65,7 @@ impl ImOk {
 		// Load previous app state (if any).
 		// Note that you must enable the `persistence` feature for this to work.
 		if let Some(storage) = cc.storage {
-			return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default()
+			return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
 		}
 
 		Default::default()
@@ -86,14 +86,20 @@ impl ImOk {
 		mut collection: mongodb::sync::Collection<Night>,
 		id: ObjectId,
 	) {
-		Night::delete_night(&mut collection, id)
-			.map(|_| {
-				night_entries.remove(&id).unwrap();
-				Self::refresh(night_entries, collection.clone());
-				Ok::<(), Error>(())
-			})
-			.unwrap()
-			.unwrap();
+		thread::spawn(move || {
+			ureq::delete(&format!("http://localhost:3000/night/{}", id.to_string()))
+				.call()
+				.unwrap();
+		});
+
+		// Night::delete_night(&mut collection, id)
+		// 	.map(|_| {
+		// 		night_entries.remove(&id).unwrap();
+		// 		Self::refresh(night_entries, collection.clone());
+		// 		Ok::<(), Error>(())
+		// 	})
+		// 	.unwrap()
+		// 	.unwrap();
 	}
 
 	pub fn edit_entry(
