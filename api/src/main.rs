@@ -2,7 +2,9 @@ mod controllers;
 mod db;
 mod models;
 
-use crate::controllers::nights::{create_night, delete_night, edit_night, get_all_nights};
+use crate::controllers::nights::{
+	create_night, delete_night, edit_night, get_all_nights, get_one_night,
+};
 use axum::{
 	routing::{delete, get, patch, post},
 	Router,
@@ -36,7 +38,7 @@ async fn main() {
 		.route("/users", post(create_user))
 		.route("/nights", get(get_all_nights))
 		// TODO(@panosfol): get_one_night;
-		// .route("/night/:id", get(get_night))
+		.route("/night/:id", get(get_one_night))
 		.route("/night", post(create_night))
 		.route("/night/:id", delete(delete_night))
 		.route("/night/:id", patch(edit_night))

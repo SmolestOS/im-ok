@@ -1,7 +1,7 @@
 use mongodb::{
 	bson::{self, oid::ObjectId},
 	error::Error,
-	options::FindOptions,
+	options::{FindOneOptions, FindOptions},
 	results::{DeleteResult, InsertOneResult, UpdateResult},
 	Cursor,
 };
@@ -31,6 +31,14 @@ impl Night {
 	) -> std::result::Result<Cursor<Night>, Error> {
 		let find_options = FindOptions::builder().limit(None).build();
 		collection.find(None, find_options).await
+	}
+
+	pub async fn get_night(
+		collection: mongodb::Collection<Night>,
+		item_id: ObjectId,
+	) -> std::result::Result<Option<Night>, Error> {
+		let find_option = FindOneOptions::builder().build();
+		collection.find_one(bson::doc! {"_id": item_id}, find_option).await
 	}
 
 	pub async fn delete_night(
