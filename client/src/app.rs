@@ -1,5 +1,3 @@
-use std::{collections::BTreeMap, thread};
-
 use crate::{
 	datepicker::DatePicker,
 	db::Night,
@@ -7,7 +5,8 @@ use crate::{
 };
 use bson::{doc, oid::ObjectId};
 use chrono::Datelike;
-use mongodb::{error::Error, options::ClientOptions, sync::Client};
+use mongodb::{options::ClientOptions, sync::Client};
+use std::collections::BTreeMap;
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -80,40 +79,6 @@ impl ImOk {
 			night_entries.insert(i.as_ref().unwrap().id.unwrap(), i.unwrap().craziness);
 		}
 	}
-
-	pub fn delete_entry(
-		_night_entries: &mut BTreeMap<ObjectId, Craziness>,
-		_collection: mongodb::sync::Collection<Night>,
-		id: ObjectId,
-	) {
-		thread::spawn(move || {
-			ureq::delete(&format!("http://localhost:3000/night/{}", id)).call().unwrap();
-		});
-
-		// Night::delete_night(&mut collection, id)
-		// 	.map(|_| {
-		// 		night_entries.remove(&id).unwrap();
-		// 		Self::refresh(night_entries, collection.clone());
-		// 		Ok::<(), Error>(())
-		// 	})
-		// 	.unwrap()
-		// 	.unwrap();
-	}
-
-	pub fn edit_entry(
-		night_entries: &mut BTreeMap<ObjectId, Craziness>,
-		mut collection: mongodb::sync::Collection<Night>,
-		id: ObjectId,
-		craziness: Craziness,
-	) {
-		Night::edit_night(&mut collection, id, craziness)
-			.map(|_| {
-				Self::refresh(night_entries, collection.clone());
-				Ok::<(), Error>(())
-			})
-			.unwrap()
-			.unwrap();
-	}
 }
 
 impl eframe::App for ImOk {
@@ -179,7 +144,7 @@ impl eframe::App for ImOk {
 									ui.close_menu();
 								}
 								if ui.button("Delete").clicked() {
-									Self::delete_entry(night_entries, collection.clone(), *i.0);
+									Night::delete_night(*i.0).unwrap();
 									ui.close_menu();
 								}
 							});
@@ -211,7 +176,7 @@ impl eframe::App for ImOk {
 									ui.close_menu();
 								}
 								if ui.button("Delete").clicked() {
-									Self::delete_entry(night_entries, collection.clone(), *i.0);
+									Night::delete_night(*i.0).unwrap();
 									ui.close_menu();
 								}
 							});
@@ -342,12 +307,7 @@ impl eframe::App for ImOk {
 								id: Some(selected_night.as_ref().unwrap().0),
 								craziness: selected_night.as_ref().unwrap().1.clone(),
 							};
-							Self::edit_entry(
-								night_entries,
-								collection.clone(),
-								night.id.unwrap(),
-								night.craziness,
-							);
+							Night::edit_night(night.id.unwrap(), night.craziness).unwrap();
 						} else {
 							let night = Night {
 								id: Some(selected_night.as_ref().unwrap().0),
@@ -356,12 +316,7 @@ impl eframe::App for ImOk {
 									..selected_night.as_ref().unwrap().1.clone()
 								},
 							};
-							Self::edit_entry(
-								night_entries,
-								collection.clone(),
-								night.id.unwrap(),
-								night.craziness,
-							);
+							Night::edit_night(night.id.unwrap(), night.craziness).unwrap();
 						};
 					}
 				});

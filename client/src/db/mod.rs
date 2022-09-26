@@ -1,10 +1,6 @@
 use crate::models::Craziness;
 use mongodb::{
-	bson::oid::ObjectId,
-	error::Error,
-	options::FindOptions,
-	results::{DeleteResult, InsertOneResult, UpdateResult},
-	sync::Cursor,
+	bson::oid::ObjectId, error::Error, options::FindOptions, results::InsertOneResult, sync::Cursor,
 };
 use serde::{Deserialize, Serialize};
 
@@ -31,22 +27,16 @@ impl Night {
 		collection.find(None, find_options)
 	}
 
-	pub fn delete_night(
-		collection: &mut mongodb::sync::Collection<Night>,
-		item_id: ObjectId,
-	) -> std::result::Result<DeleteResult, Error> {
-		// Convert `captain_marvel` to a Bson instance:
-		collection.delete_one(bson::doc! {"_id": item_id }, None)
+	pub fn delete_night(item_id: ObjectId) -> std::result::Result<ureq::Response, ureq::Error> {
+		ureq::delete(&format!("http://localhost:3000/night/{}", item_id)).call()
 	}
 
 	pub fn edit_night(
-		collection: &mut mongodb::sync::Collection<Night>,
 		item_id: ObjectId,
 		craziness: Craziness,
-	) -> std::result::Result<UpdateResult, Error> {
-		let query = bson::doc! { "_id": item_id };
-		let doc = bson::to_document(&craziness).unwrap();
-		let update = bson::doc! {"$set": { "craziness": doc }};
-		collection.update_one(query, update, None)
+	) -> std::result::Result<ureq::Response, ureq::Error> {
+		ureq::patch(&format!("http://localhost:3000/night/{}", item_id))
+			.set("Content-Type", "application/json")
+			.send_json(ureq::json!(craziness))
 	}
 }

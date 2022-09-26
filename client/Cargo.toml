@@ -18,7 +18,7 @@ bson = "2.4.0"
 image = "0.24.3"
 dotenv = "0.15.0"
 num-traits = "0.2.15"
-ureq = "2.5.0"
+ureq = { version = "2.5.0", features = ["json"] }
 
 [dependencies.mongodb]
 version = "2.3.0"
