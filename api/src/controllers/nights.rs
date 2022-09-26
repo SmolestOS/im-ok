@@ -8,10 +8,13 @@ use axum::{extract::Path, http::StatusCode, response::IntoResponse, Extension, J
 use futures::stream::TryStreamExt;
 use mongodb::bson::{oid::ObjectId, Bson};
 
+// TODO(@panosfol): get_night function;
+
 pub async fn get_all_nights(Extension(state): Extension<State>) -> impl IntoResponse {
 	let cursor = Night::get_all_nights(state.night_collection.clone()).await.unwrap();
-
 	let v: Vec<Night> = cursor.try_collect().await.unwrap();
+
+	// TODO(@panosfol): sort by date eg. `foo_items.sort_by(|a, b| a.date.cmp(&b.date));`
 
 	(StatusCode::CREATED, Json(v))
 }

@@ -35,6 +35,8 @@ async fn main() {
 	let app = Router::new()
 		.route("/users", post(create_user))
 		.route("/nights", get(get_all_nights))
+		// TODO(@panosfol): get_one_night;
+		// .route("/night/:id", get(get_night))
 		.route("/night", post(create_night))
 		.route("/night/:id", delete(delete_night))
 		.route("/night/:id", patch(edit_night))
