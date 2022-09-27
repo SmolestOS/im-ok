@@ -8,17 +8,39 @@ use axum::{extract::Path, http::StatusCode, response::IntoResponse, Extension, J
 use futures::stream::TryStreamExt;
 use mongodb::bson::{oid::ObjectId, Bson};
 
+use super::Response;
+
 // TODO(@panosfol): get_night function;
 
 pub async fn get_one_night(
 	Path(params): Path<String>,
 	Extension(state): Extension<State>,
-) -> impl IntoResponse {
-	let db_req =
-		Night::get_night(state.night_collection, ObjectId::from_str(&params).unwrap()).await;
-	match db_req {
-		Ok(_) => (StatusCode::CREATED, Json(Bson::String("Success".to_string()))),
-		Err(err) => (StatusCode::BAD_REQUEST, Json(Bson::String(err.to_string()))),
+) -> (StatusCode, Json<Response>) {
+	let mut resp = Response::default();
+	match ObjectId::from_str(&params) {
+		Ok(oid) => {
+			let db_req = Night::get_night(state.night_collection, oid).await;
+
+			match db_req {
+				Ok(res) =>
+					if let Some(night) = res {
+						resp.data = Some(night);
+						resp.msg = "Success".to_string();
+						(StatusCode::OK, Json(resp))
+					} else {
+						resp.msg = "Not found".to_string();
+						(StatusCode::BAD_REQUEST, Json(resp))
+					},
+				Err(err) => {
+					resp.msg = err.to_string();
+					(StatusCode::BAD_REQUEST, Json(resp))
+				},
+			}
+		},
+		Err(err) => {
+			resp.msg = err.to_string();
+			(StatusCode::BAD_REQUEST, Json(resp))
+		},
 	}
 }
 
