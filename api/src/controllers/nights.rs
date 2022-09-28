@@ -8,7 +8,7 @@ use axum::{extract::Path, http::StatusCode, Extension, Json};
 use futures::stream::TryStreamExt;
 use mongodb::bson::oid::ObjectId;
 
-use super::{CreatedResponse, DeletedResponse, EditedResponse, Response, ResponseNights};
+use super::{CreateResponse, DeleteResponse, EditResponse, ResponseNight, ResponseNights};
 
 pub async fn get_all_nights(
 	Extension(state): Extension<State>,
@@ -17,7 +17,7 @@ pub async fn get_all_nights(
 	let cursor = Night::get_all_nights(state.night_collection.clone()).await.unwrap();
 	let mut v: Vec<Night> = cursor.try_collect().await.unwrap();
 
-	resp.msg = "Sucess".to_string();
+	resp.msg = "Success".to_string();
 	v.sort_by(|a, b| a.craziness.date.cmp(&b.craziness.date));
 	resp.data = Some(v);
 	(StatusCode::CREATED, Json(resp))
@@ -26,8 +26,8 @@ pub async fn get_all_nights(
 pub async fn get_one_night(
 	Path(params): Path<String>,
 	Extension(state): Extension<State>,
-) -> (StatusCode, Json<Response>) {
-	let mut resp = Response::default();
+) -> (StatusCode, Json<ResponseNight>) {
+	let mut resp = ResponseNight::default();
 	match ObjectId::from_str(&params) {
 		Ok(oid) => {
 			let db_req = Night::get_night(state.night_collection, oid).await;
@@ -58,8 +58,8 @@ pub async fn get_one_night(
 pub async fn create_night(
 	Json(payload): Json<Craziness>,
 	Extension(state): Extension<State>,
-) -> (StatusCode, Json<CreatedResponse>) {
-	let mut resp = CreatedResponse::default();
+) -> (StatusCode, Json<CreateResponse>) {
+	let mut resp = CreateResponse::default();
 	let db_req =
 		Night::create_night(state.night_collection, Night { id: None, craziness: payload }).await;
 
@@ -79,16 +79,16 @@ pub async fn create_night(
 pub async fn delete_night(
 	Path(params): Path<String>,
 	Extension(state): Extension<State>,
-) -> (StatusCode, Json<DeletedResponse>) {
-	let mut resp = DeletedResponse::default();
+) -> (StatusCode, Json<DeleteResponse>) {
+	let mut resp = DeleteResponse::default();
 	match ObjectId::from_str(&params) {
 		Ok(oid) => {
 			let db_req = Night::delete_night(state.night_collection, oid).await;
 
 			match db_req {
-				Ok(_) => {
+				Ok(res) => {
 					resp.data = Some(oid);
-					resp.msg = "Success".to_string();
+					resp.msg = format!("Successfully deleted {} objects", res.deleted_count);
 					(StatusCode::OK, Json(resp))
 				},
 				Err(err) => {
@@ -108,15 +108,15 @@ pub async fn edit_night(
 	Path(params): Path<String>,
 	Json(payload): Json<Craziness>,
 	Extension(state): Extension<State>,
-) -> (StatusCode, Json<EditedResponse>) {
-	let mut resp = EditedResponse::default();
+) -> (StatusCode, Json<EditResponse>) {
+	let mut resp = EditResponse::default();
 	match ObjectId::from_str(&params) {
 		Ok(oid) => {
 			let db_req = Night::edit_night(state.night_collection, oid, payload).await;
 
 			match db_req {
-				Ok(_) => {
-					resp.data = Some(oid);
+				Ok(res) => {
+					resp.data = res.upserted_id;
 					resp.msg = "Success".to_string();
 					(StatusCode::OK, Json(resp))
 				},

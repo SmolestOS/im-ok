@@ -4,7 +4,7 @@ use crate::models::night::Night;
 use mongodb::bson::{oid::ObjectId, Bson};
 
 #[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct Response {
+pub struct ResponseNight {
 	pub msg: String,
 	pub data: Option<Night>,
 }
@@ -15,18 +15,18 @@ pub struct ResponseNights {
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct DeletedResponse {
+pub struct DeleteResponse {
 	pub msg: String,
 	pub data: Option<ObjectId>,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct CreatedResponse {
+pub struct CreateResponse {
 	pub msg: String,
 	pub data: Option<Bson>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct EditedResponse {
+pub struct EditResponse {
 	pub msg: String,
-	pub data: Option<ObjectId>,
+	pub data: Option<Bson>,
 }
