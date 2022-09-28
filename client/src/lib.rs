@@ -2,6 +2,6 @@
 
 mod app;
 mod datepicker;
-mod db;
 mod models;
+mod types;
 pub use app::ImOk;

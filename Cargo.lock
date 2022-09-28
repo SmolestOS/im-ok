@@ -1392,7 +1392,6 @@ dependencies = [
  "eframe",
  "egui",
  "image",
- "mongodb",
  "num-traits",
  "serde",
  "tracing-subscriber",

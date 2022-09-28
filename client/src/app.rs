@@ -1,12 +1,9 @@
 use crate::{
 	datepicker::DatePicker,
-	db::Night,
-	models::{AppState, Craziness, Drunkness, User},
+	models::{AppState, Craziness, Drunkness, Night, User},
 };
-use bson::{doc, oid::ObjectId};
+use bson::doc;
 use chrono::Datelike;
-use mongodb::{options::ClientOptions, sync::Client};
-use std::collections::BTreeMap;
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -15,40 +12,31 @@ pub struct ImOk {
 	// Example stuff:
 	// this how you opt-out of serialization of a member
 	#[serde(skip)]
-	nights_collection: mongodb::sync::Collection<Night>,
 	craziness: Craziness,
 	other_city: String,
-	night_entries: BTreeMap<ObjectId, Craziness>,
-	selected_night: Option<(ObjectId, Craziness)>,
+	night_entries: Vec<Night>,
+	selected_night: Option<Night>,
 	appstate: AppState,
 }
 
 impl Default for ImOk {
 	fn default() -> Self {
-		let mut client_options = ClientOptions::parse(
-			std::env::var("MONGO_URI").expect("MONGO_URI environment variable not set."),
-		)
-		.unwrap();
-		client_options.app_name = Some("Im Ok".to_string());
-
-		let client = Client::with_options(client_options).unwrap();
-
-		#[cfg(debug_assertions)]
-		let mut collection = client.database("im_ok").collection::<Night>("nights");
-		#[cfg(not(debug_assertions))]
-		let mut collection = client.database("im_ok_prod").collection::<Night>("nights");
-
-		let mut night_entries = BTreeMap::<ObjectId, Craziness>::new();
-		for i in Night::get_all_nights(&mut collection).unwrap() {
-			night_entries.insert(i.as_ref().unwrap().id.unwrap(), i.unwrap().craziness);
+		let mut night_entries = Vec::<Night>::new();
+		for i in Night::get_all_nights()
+			.unwrap()
+			.into_json::<crate::types::ResponseNights>()
+			.unwrap()
+			.data
+			.unwrap()
+			.iter()
+		{
+			night_entries.push(i.clone());
 		}
 
 		Self {
-			// Example stuff:
-			nights_collection: collection,
 			craziness: Craziness::default(),
 			other_city: String::new(),
-			night_entries,
+			night_entries: night_entries.clone(),
 			selected_night: None,
 			appstate: AppState::default(),
 		}
@@ -71,12 +59,17 @@ impl ImOk {
 	}
 
 	/// Helper function for updating the `night_entries`
-	pub fn refresh(
-		night_entries: &mut BTreeMap<ObjectId, Craziness>,
-		mut collection: mongodb::sync::Collection<Night>,
-	) {
-		for i in Night::get_all_nights(&mut collection).unwrap() {
-			night_entries.insert(i.as_ref().unwrap().id.unwrap(), i.unwrap().craziness);
+	pub fn refresh(night_entries: &mut Vec<Night>) {
+		night_entries.clear();
+		for i in Night::get_all_nights()
+			.unwrap()
+			.into_json::<crate::types::ResponseNights>()
+			.unwrap()
+			.data
+			.unwrap()
+			.iter()
+		{
+			night_entries.push(i.clone());
 		}
 	}
 }
@@ -90,14 +83,7 @@ impl eframe::App for ImOk {
 	/// Called each time the UI needs repainting, which may be many times per second.
 	/// Put your widgets into a `SidePanel`, `TopPanel`, `CentralPanel`, `Window` or `Area`.
 	fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-		let Self {
-			nights_collection: collection,
-			craziness,
-			other_city,
-			night_entries,
-			selected_night,
-			appstate,
-		} = self;
+		let Self { craziness, other_city, night_entries, selected_night, appstate } = self;
 
 		// Examples of how to create different panels and windows.
 		// Pick whichever suits you.
@@ -121,30 +107,30 @@ impl eframe::App for ImOk {
 		egui::SidePanel::left("side_panel").min_width(120.0).show(ctx, |ui| {
 			egui::ScrollArea::both().show(ui, |ui| {
 				egui::CollapsingHeader::new("Lostsaka").show(ui, |ui| {
-					for i in night_entries.clone().iter() {
-						if i.1.user == User::Lostsaka {
+					for i in night_entries.iter() {
+						if i.craziness.user == User::Lostsaka {
 							let response = ui.add(egui::SelectableLabel::new(
 								false,
 								format!(
 									"{} {}/{}/{}",
-									i.1.date.weekday(),
-									i.1.date.day(),
-									i.1.date.month(),
-									i.1.date.year()
+									i.craziness.date.weekday(),
+									i.craziness.date.day(),
+									i.craziness.date.month(),
+									i.craziness.date.year()
 								),
 							));
 							if response.clicked() {
-								*selected_night = Some((*i.0, i.1.clone()));
+								*selected_night = Some(i.clone());
 								*appstate = AppState::Viewing;
 							}
 							response.context_menu(|ui| {
 								if ui.button("Edit").clicked() {
 									*appstate = AppState::Editing;
-									*selected_night = Some((*i.0, i.1.clone()));
+									*selected_night = Some(i.clone());
 									ui.close_menu();
 								}
 								if ui.button("Delete").clicked() {
-									Night::delete_night(*i.0).unwrap();
+									Night::delete_night(i.id.unwrap()).unwrap();
 									ui.close_menu();
 								}
 							});
@@ -153,30 +139,30 @@ impl eframe::App for ImOk {
 				});
 
 				egui::CollapsingHeader::new("Gkasma").show(ui, |ui| {
-					for i in night_entries.clone().iter() {
-						if i.1.user == User::Gkasma {
+					for i in night_entries.iter() {
+						if i.craziness.user == User::Gkasma {
 							let response = ui.add(egui::SelectableLabel::new(
 								false,
 								format!(
 									"{} {}/{}/{}",
-									i.1.date.weekday(),
-									i.1.date.day(),
-									i.1.date.month(),
-									i.1.date.year()
+									i.craziness.date.weekday(),
+									i.craziness.date.day(),
+									i.craziness.date.month(),
+									i.craziness.date.year()
 								),
 							));
 							if response.clicked() {
-								*selected_night = Some((*i.0, i.1.clone()));
+								*selected_night = Some(i.clone());
 								*appstate = AppState::Viewing;
 							}
 							response.context_menu(|ui| {
 								if ui.button("Edit").clicked() {
 									*appstate = AppState::Editing;
-									*selected_night = Some((*i.0, i.1.clone()));
+									*selected_night = Some(i.clone());
 									ui.close_menu();
 								}
 								if ui.button("Delete").clicked() {
-									Night::delete_night(*i.0).unwrap();
+									Night::delete_night(i.id.unwrap()).unwrap();
 									ui.close_menu();
 								}
 							});
@@ -185,7 +171,7 @@ impl eframe::App for ImOk {
 				});
 
 				if ui.add(egui::Button::new("Refresh")).clicked() {
-					Self::refresh(night_entries, collection.clone());
+					Self::refresh(night_entries);
 				}
 			});
 		});
@@ -204,15 +190,18 @@ impl eframe::App for ImOk {
 					// The central panel the region left after adding TopPanel's and SidePanel's
 					ui.heading("Users");
 					egui::ComboBox::from_id_source("my-box")
-						.selected_text(format!("{:?}", selected_night.as_ref().unwrap().1.user))
+						.selected_text(format!(
+							"{:?}",
+							selected_night.as_ref().unwrap().craziness.user
+						))
 						.show_ui(ui, |ui| {
 							ui.selectable_value(
-								&mut selected_night.as_mut().unwrap().1.user,
+								&mut selected_night.as_mut().unwrap().craziness.user,
 								User::Lostsaka,
 								"Lostsaka",
 							);
 							ui.selectable_value(
-								&mut selected_night.as_mut().unwrap().1.user,
+								&mut selected_night.as_mut().unwrap().craziness.user,
 								User::Gkasma,
 								"Gkasma",
 							);
@@ -222,36 +211,36 @@ impl eframe::App for ImOk {
 					egui::ComboBox::from_id_source("my-box2")
 						.selected_text(format!(
 							"{:?}",
-							selected_night.as_mut().unwrap().1.drunkness
+							selected_night.as_mut().unwrap().craziness.drunkness
 						))
 						.show_ui(ui, |ui| {
 							ui.selectable_value(
-								&mut selected_night.as_mut().unwrap().1.drunkness,
+								&mut selected_night.as_mut().unwrap().craziness.drunkness,
 								Drunkness::Cool,
 								"Cool",
 							);
 							ui.selectable_value(
-								&mut selected_night.as_mut().unwrap().1.drunkness,
+								&mut selected_night.as_mut().unwrap().craziness.drunkness,
 								Drunkness::LittleHead,
 								"LittleHead",
 							);
 							ui.selectable_value(
-								&mut selected_night.as_mut().unwrap().1.drunkness,
+								&mut selected_night.as_mut().unwrap().craziness.drunkness,
 								Drunkness::Bream,
 								"Bream",
 							);
 							ui.selectable_value(
-								&mut selected_night.as_mut().unwrap().1.drunkness,
+								&mut selected_night.as_mut().unwrap().craziness.drunkness,
 								Drunkness::Gnat,
 								"Gnat",
 							);
 							ui.selectable_value(
-								&mut selected_night.as_mut().unwrap().1.drunkness,
+								&mut selected_night.as_mut().unwrap().craziness.drunkness,
 								Drunkness::Ant,
 								"Ant",
 							);
 							ui.selectable_value(
-								&mut selected_night.as_mut().unwrap().1.drunkness,
+								&mut selected_night.as_mut().unwrap().craziness.drunkness,
 								Drunkness::ImOk,
 								"ImOk",
 							);
@@ -260,40 +249,45 @@ impl eframe::App for ImOk {
 					ui.separator();
 					ui.heading("City");
 					ui.radio_value(
-						&mut selected_night.as_mut().unwrap().1.location,
+						&mut selected_night.as_mut().unwrap().craziness.location,
 						"Athens".to_string(),
 						"Athens",
 					);
 					ui.radio_value(
-						&mut selected_night.as_mut().unwrap().1.location,
+						&mut selected_night.as_mut().unwrap().craziness.location,
 						"Korinthos".to_string(),
 						"Korinthos",
 					);
 					ui.radio_value(
-						&mut selected_night.as_mut().unwrap().1.location,
+						&mut selected_night.as_mut().unwrap().craziness.location,
 						"Other".to_string(),
 						"Other",
 					);
 
-					if selected_night.as_mut().unwrap().1.location == *"Other".to_string() {
+					if selected_night.as_mut().unwrap().craziness.location == *"Other".to_string() {
 						ui.label("Enter your city: ");
 						ui.text_edit_singleline(other_city);
 					}
 
 					ui.separator();
 					ui.heading("Night Activities");
-					ui.checkbox(&mut selected_night.as_mut().unwrap().1.coitus, "Coitus");
-					ui.checkbox(&mut selected_night.as_mut().unwrap().1.drive, "Driven");
-					ui.checkbox(&mut selected_night.as_mut().unwrap().1.talked_2x, "Talked_2x");
+					ui.checkbox(&mut selected_night.as_mut().unwrap().craziness.coitus, "Coitus");
+					ui.checkbox(&mut selected_night.as_mut().unwrap().craziness.drive, "Driven");
+					ui.checkbox(
+						&mut selected_night.as_mut().unwrap().craziness.talked_2x,
+						"Talked_2x",
+					);
 
 					ui.separator();
-					ui.text_edit_multiline(&mut selected_night.as_mut().unwrap().1.description);
+					ui.text_edit_multiline(
+						&mut selected_night.as_mut().unwrap().craziness.description,
+					);
 
 					ui.separator();
 					ui.heading("Date");
 					ui.add(DatePicker::new(
 						"date_picker",
-						&mut selected_night.as_mut().unwrap().1.date,
+						&mut selected_night.as_mut().unwrap().craziness.date,
 					));
 
 					// Update entry to database
@@ -304,16 +298,16 @@ impl eframe::App for ImOk {
 						// or else the location on the database will be "Other". - @charmitro
 						if other_city.is_empty() {
 							let night = Night {
-								id: Some(selected_night.as_ref().unwrap().0),
-								craziness: selected_night.as_ref().unwrap().1.clone(),
+								id: Some(selected_night.as_ref().unwrap().id.unwrap()),
+								craziness: selected_night.as_ref().unwrap().craziness.clone(),
 							};
 							Night::edit_night(night.id.unwrap(), night.craziness).unwrap();
 						} else {
 							let night = Night {
-								id: Some(selected_night.as_ref().unwrap().0),
+								id: Some(selected_night.as_ref().unwrap().id.unwrap()),
 								craziness: Craziness {
 									location: other_city.to_string(),
-									..selected_night.as_ref().unwrap().1.clone()
+									..selected_night.as_ref().unwrap().craziness.clone()
 								},
 							};
 							Night::edit_night(night.id.unwrap(), night.craziness).unwrap();
@@ -325,18 +319,21 @@ impl eframe::App for ImOk {
 			AppState::Viewing => {
 				egui::CentralPanel::default().show(ctx, |ui| {
 					// The central panel the region left after adding TopPanel's and SidePanel's
-					ui.heading(format!("{:?}", selected_night.as_ref().unwrap().1.user));
+					ui.heading(format!("{:?}", selected_night.as_ref().unwrap().craziness.user));
 
 					ui.separator();
 
 					ui.heading(format!(
 						"Drunk level: {:?}",
-						selected_night.as_ref().unwrap().1.drunkness
+						selected_night.as_ref().unwrap().craziness.drunkness
 					));
 
 					ui.separator();
 
-					ui.heading(format!("City: {}", selected_night.as_ref().unwrap().1.location));
+					ui.heading(format!(
+						"City: {}",
+						selected_night.as_ref().unwrap().craziness.location
+					));
 
 					ui.separator();
 
@@ -344,21 +341,21 @@ impl eframe::App for ImOk {
 					ui.add_enabled(
 						false,
 						egui::Checkbox::new(
-							&mut selected_night.as_ref().unwrap().1.coitus.clone(),
+							&mut selected_night.as_ref().unwrap().craziness.coitus.clone(),
 							"Coitus",
 						),
 					);
 					ui.add_enabled(
 						false,
 						egui::Checkbox::new(
-							&mut selected_night.as_ref().unwrap().1.drive.clone(),
+							&mut selected_night.as_ref().unwrap().craziness.drive.clone(),
 							"Driven",
 						),
 					);
 					ui.add_enabled(
 						false,
 						egui::Checkbox::new(
-							&mut selected_night.as_ref().unwrap().1.talked_2x.clone(),
+							&mut selected_night.as_ref().unwrap().craziness.talked_2x.clone(),
 							"Talked_2x",
 						),
 					);
@@ -368,7 +365,7 @@ impl eframe::App for ImOk {
 					ui.add_enabled(
 						false,
 						egui::TextEdit::multiline(
-							&mut selected_night.as_ref().unwrap().1.description.clone(),
+							&mut selected_night.as_ref().unwrap().craziness.description.clone(),
 						),
 					);
 
@@ -376,7 +373,7 @@ impl eframe::App for ImOk {
 					ui.heading("Date");
 					ui.add(DatePicker::new(
 						"date_picker",
-						&mut selected_night.as_ref().unwrap().1.date.clone(),
+						&mut selected_night.as_ref().unwrap().craziness.date.clone(),
 					));
 				});
 			},
@@ -443,7 +440,7 @@ impl eframe::App for ImOk {
 						// or else the location on the database will be "Other". - @charmitro
 						if other_city.is_empty() {
 							let night = Night { id: None, craziness: craziness.clone() };
-							Night::create_night(&mut collection.clone(), night).unwrap();
+							Night::create_night(night).unwrap();
 						} else {
 							let night = Night {
 								id: None,
@@ -458,7 +455,7 @@ impl eframe::App for ImOk {
 									date: craziness.date,
 								},
 							};
-							Night::create_night(&mut collection.clone(), night).unwrap();
+							Night::create_night(night).unwrap();
 						};
 					}
 				});

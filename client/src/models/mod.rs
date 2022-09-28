@@ -1,3 +1,4 @@
+use bson::oid::ObjectId;
 use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 
@@ -68,5 +69,37 @@ impl Default for Craziness {
 			description: "Kala htan".to_string(),
 			date: DateTime::<Local>::default(),
 		}
+	}
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Night {
+	#[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
+	pub id: Option<ObjectId>,
+	pub craziness: Craziness,
+}
+
+impl Night {
+	pub fn create_night(item: Night) -> std::result::Result<ureq::Response, ureq::Error> {
+		ureq::post("http://localhost:3000/night")
+			.set("Content-Type", "application/json")
+			.send_json(item.craziness)
+	}
+
+	pub fn delete_night(item_id: ObjectId) -> std::result::Result<ureq::Response, ureq::Error> {
+		ureq::delete(&format!("http://localhost:3000/night/{}", item_id)).call()
+	}
+
+	pub fn edit_night(
+		item_id: ObjectId,
+		craziness: Craziness,
+	) -> std::result::Result<ureq::Response, ureq::Error> {
+		ureq::patch(&format!("http://localhost:3000/night/{}", item_id))
+			.set("Content-Type", "application/json")
+			.send_json(ureq::json!(craziness))
+	}
+
+	pub fn get_all_nights() -> std::result::Result<ureq::Response, ureq::Error> {
+		ureq::get("http://localhost:3000/nights").call()
 	}
 }

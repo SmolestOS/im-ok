@@ -20,10 +20,6 @@ dotenv = "0.15.0"
 num-traits = "0.2.15"
 ureq = { version = "2.5.0", features = ["json"] }
 
-[dependencies.mongodb]
-version = "2.3.0"
-features = ["tokio-sync"]
-
 # native:
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tracing-subscriber = "0.3"
