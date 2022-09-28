@@ -1,7 +1,7 @@
 pub mod nights;
 pub mod user;
 use crate::models::night::Night;
-use mongodb::bson::oid::ObjectId;
+use mongodb::bson::{oid::ObjectId, Bson};
 
 #[derive(serde::Serialize, serde::Deserialize, Default)]
 pub struct Response {
@@ -15,7 +15,18 @@ pub struct ResponseNights {
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct DeletedId {
+pub struct DeletedResponse {
+	pub msg: String,
+	pub data: Option<ObjectId>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Default)]
+pub struct CreatedResponse {
+	pub msg: String,
+	pub data: Option<Bson>,
+}
+#[derive(serde::Serialize, serde::Deserialize, Default)]
+pub struct EditedResponse {
 	pub msg: String,
 	pub data: Option<ObjectId>,
 }

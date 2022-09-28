@@ -17,12 +17,10 @@ pub struct Night {
 }
 
 impl Night {
-	#[allow(dead_code)]
 	pub async fn create_night(
 		collection: mongodb::Collection<Night>,
 		item: Night,
 	) -> std::result::Result<InsertOneResult, Error> {
-		// Convert `captain_marvel` to a Bson instance:
 		collection.insert_one(item, None).await
 	}
 
@@ -45,11 +43,9 @@ impl Night {
 		collection: mongodb::Collection<Night>,
 		item_id: ObjectId,
 	) -> std::result::Result<DeleteResult, Error> {
-		// Convert `captain_marvel` to a Bson instance:
 		collection.delete_one(bson::doc! {"_id": item_id }, None).await
 	}
 
-	#[allow(dead_code)]
 	pub async fn edit_night(
 		collection: mongodb::Collection<Night>,
 		item_id: ObjectId,
