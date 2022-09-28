@@ -10,7 +10,7 @@ fn main() {
 
 	let mut native_options = eframe::NativeOptions::default();
 
-	let icon = image::open("assets/favicon.ico").expect("peos");
+	let icon = image::open("client/assets/favicon.ico").expect("peos");
 	let (icon_width, icon_height) = icon.dimensions();
 	native_options.min_window_size = Some(egui::Vec2::new(840.0, 620.0));
 	native_options.max_window_size = Some(egui::Vec2::new(840.0, 620.0));
