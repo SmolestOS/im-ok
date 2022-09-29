@@ -34,13 +34,19 @@ async fn main() {
 
 	let collection = establish_connection().await;
 
+	let users_routes = Router::new().route("/new", post(create_user));
+	let night_routes = Router::new()
+		.route("/", get(get_all_nights))
+		.route("/new", post(create_night))
+		.route("/:id", get(get_one_night))
+		.route("/:id", patch(edit_night))
+		.route("/:id", delete(delete_night));
+
 	let app = Router::new()
-		.route("/users", post(create_user))
-		.route("/nights", get(get_all_nights))
-		.route("/night/:id", get(get_one_night))
-		.route("/night", post(create_night))
-		.route("/night/:id", delete(delete_night))
-		.route("/night/:id", patch(edit_night))
+		// NOTE: Nesting allow us to have endpoints with below
+		// the same endpoint - @charmitro
+		.nest("/users", users_routes)
+		.nest("/nights", night_routes)
 		.layer(AddExtensionLayer::new(State::new(collection)));
 
 	let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
