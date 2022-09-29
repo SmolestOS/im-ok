@@ -81,20 +81,20 @@ pub struct Night {
 
 impl Night {
 	pub fn create_night(item: Night) -> std::result::Result<ureq::Response, ureq::Error> {
-		ureq::post("http://localhost:3000/night")
+		ureq::post("http://localhost:3000/nights/new")
 			.set("Content-Type", "application/json")
 			.send_json(item.craziness)
 	}
 
 	pub fn delete_night(item_id: ObjectId) -> std::result::Result<ureq::Response, ureq::Error> {
-		ureq::delete(&format!("http://localhost:3000/night/{}", item_id)).call()
+		ureq::delete(&format!("http://localhost:3000/nights/{}", item_id)).call()
 	}
 
 	pub fn edit_night(
 		item_id: ObjectId,
 		craziness: Craziness,
 	) -> std::result::Result<ureq::Response, ureq::Error> {
-		ureq::patch(&format!("http://localhost:3000/night/{}", item_id))
+		ureq::patch(&format!("http://localhost:3000/nights/{}", item_id))
 			.set("Content-Type", "application/json")
 			.send_json(ureq::json!(craziness))
 	}
