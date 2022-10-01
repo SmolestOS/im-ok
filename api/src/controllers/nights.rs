@@ -4,11 +4,12 @@ use crate::{
 	models::{craziness::Craziness, night::Night},
 	State,
 };
+
 use axum::{extract::Path, http::StatusCode, Extension, Json};
 use futures::stream::TryStreamExt;
 use mongodb::bson::oid::ObjectId;
 
-use super::{CreateResponse, DeleteResponse, EditResponse, ResponseNight, ResponseNights};
+use super::{CreateNightResponse, DeleteNightResponse, EditNightResponse, ResponseNight, ResponseNights};
 
 pub async fn get_all_nights(
 	Extension(state): Extension<State>,
@@ -47,7 +48,7 @@ pub async fn get_one_night(
 					(StatusCode::BAD_REQUEST, Json(resp))
 				},
 			}
-		},
+		},nn
 		Err(err) => {
 			resp.msg = err.to_string();
 			(StatusCode::BAD_REQUEST, Json(resp))
@@ -58,8 +59,8 @@ pub async fn get_one_night(
 pub async fn create_night(
 	Json(payload): Json<Craziness>,
 	Extension(state): Extension<State>,
-) -> (StatusCode, Json<CreateResponse>) {
-	let mut resp = CreateResponse::default();
+) -> (StatusCode, Json<CreateNightResponse>) {
+	let mut resp = CreateNightResponse::default();
 	let db_req =
 		Night::create_night(state.night_collection, Night { id: None, craziness: payload }).await;
 
@@ -79,8 +80,8 @@ pub async fn create_night(
 pub async fn delete_night(
 	Path(params): Path<String>,
 	Extension(state): Extension<State>,
-) -> (StatusCode, Json<DeleteResponse>) {
-	let mut resp = DeleteResponse::default();
+) -> (StatusCode, Json<DeleteNightResponse>) {
+	let mut resp = DeleteNightResponse::default();
 	match ObjectId::from_str(&params) {
 		Ok(oid) => {
 			let db_req = Night::delete_night(state.night_collection, oid).await;
@@ -108,8 +109,8 @@ pub async fn edit_night(
 	Path(params): Path<String>,
 	Json(payload): Json<Craziness>,
 	Extension(state): Extension<State>,
-) -> (StatusCode, Json<EditResponse>) {
-	let mut resp = EditResponse::default();
+) -> (StatusCode, Json<EditNightResponse>) {
+	let mut resp = EditNightResponse::default();
 	match ObjectId::from_str(&params) {
 		Ok(oid) => {
 			let db_req = Night::edit_night(state.night_collection, oid, payload).await;
