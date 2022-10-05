@@ -15,40 +15,18 @@ pub struct ResponseNights {
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct DeleteNightResponse {
+pub struct DeleteResponse {
 	pub msg: String,
 	pub data: Option<ObjectId>,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct CreateNightResponse {
+pub struct CreateResponse {
 	pub msg: String,
 	pub data: Option<Bson>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct EditNightResponse {
+pub struct EditResponse {
 	pub msg: String,
 	pub data: Option<Bson>,
-}
-
-#[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct ResponseUser {
-    pub msg: String,
-    pub data: Option<User>,
-}
-#[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct DeleteUserResponse {
-    pub msg: String,
-    pub data: Option<ObjectId>,
-}
-
-#[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct CreateUserResponse {
-    pub msg: String,
-    pub data: Option<Bson>,
-}
-#[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct EditUserResponse {
-    pub msg: String,
-    pub data: Option<Bson>,
 }
