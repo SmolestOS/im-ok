@@ -11,19 +11,18 @@ use axum::{
 };
 use controllers::user::create_user;
 use db::establish_connection;
-use models::night::Night;
-use mongodb::Collection;
+use mongodb::Database;
 use std::net::SocketAddr;
 use tower_http::add_extension::AddExtensionLayer;
 
 #[derive(Clone)]
 pub struct State {
-	night_collection: Collection<Night>,
+	db_connection: Database,
 }
 
 impl State {
-	fn new(night_collection: Collection<Night>) -> Self {
-		Self { night_collection }
+	fn new(db_connection: Database) -> Self {
+		Self { db_connection }
 	}
 }
 
@@ -32,7 +31,7 @@ async fn main() {
 	tracing_subscriber::fmt::init();
 	dotenv::dotenv().ok();
 
-	let collection = establish_connection().await;
+	let database = establish_connection().await;
 
 	let users_routes = Router::new().route("/new", post(create_user));
 	let night_routes = Router::new()
@@ -47,7 +46,7 @@ async fn main() {
 		// the same endpoint - @charmitro
 		.nest("/users", users_routes)
 		.nest("/nights", night_routes)
-		.layer(AddExtensionLayer::new(State::new(collection)));
+		.layer(AddExtensionLayer::new(State::new(database)));
 
 	let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
 	tracing::debug!("Listening on {}", addr);

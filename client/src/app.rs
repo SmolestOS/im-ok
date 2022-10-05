@@ -1,6 +1,7 @@
 use crate::{
 	datepicker::DatePicker,
-	models::{AppState, Craziness, Drunkness, Night, User},
+	models::{Craziness, Drunkness, Night, User},
+	types::AppState,
 };
 use bson::doc;
 use chrono::Datelike;
@@ -17,6 +18,9 @@ pub struct ImOk {
 	night_entries: Vec<Night>,
 	selected_night: Option<Night>,
 	appstate: AppState,
+
+	username: String,
+	password: String,
 }
 
 impl Default for ImOk {
@@ -39,6 +43,8 @@ impl Default for ImOk {
 			night_entries: night_entries.clone(),
 			selected_night: None,
 			appstate: AppState::default(),
+			username: String::from("username"),
+			password: String::from("password"),
 		}
 	}
 }
@@ -83,7 +89,15 @@ impl eframe::App for ImOk {
 	/// Called each time the UI needs repainting, which may be many times per second.
 	/// Put your widgets into a `SidePanel`, `TopPanel`, `CentralPanel`, `Window` or `Area`.
 	fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-		let Self { craziness, other_city, night_entries, selected_night, appstate } = self;
+		let Self {
+			craziness,
+			other_city,
+			night_entries,
+			selected_night,
+			appstate,
+			username,
+			password,
+		} = self;
 
 		// Examples of how to create different panels and windows.
 		// Pick whichever suits you.
@@ -185,6 +199,30 @@ impl eframe::App for ImOk {
 		});
 
 		match appstate {
+			AppState::LoginRegister => {
+				egui::CentralPanel::default().show(ctx, |ui| {
+					ui.vertical_centered_justified(|ui| {
+						ui.set_max_width(250.0);
+						ui.heading("Login");
+
+						ui.add_space(20.0);
+						ui.text_edit_singleline(username);
+
+						ui.add_space(5.0);
+						ui.text_edit_singleline(password);
+
+						ui.add_space(20.0);
+						if ui.add(egui::Button::new("Login")).clicked() {
+							// login API call
+						}
+						ui.add_space(10.0);
+						if ui.add(egui::Button::new("Register")).clicked() {
+							// Register API call
+						}
+					});
+				});
+			},
+
 			AppState::Editing => {
 				egui::CentralPanel::default().show(ctx, |ui| {
 					// The central panel the region left after adding TopPanel's and SidePanel's

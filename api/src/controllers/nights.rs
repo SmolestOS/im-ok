@@ -14,7 +14,9 @@ pub async fn get_all_nights(
 	Extension(state): Extension<State>,
 ) -> (StatusCode, Json<ResponseNights>) {
 	let mut resp = ResponseNights::default();
-	let cursor = Night::get_all_nights(state.night_collection.clone()).await.unwrap();
+	let cursor = Night::get_all_nights(state.db_connection.collection::<Night>("nights"))
+		.await
+		.unwrap();
 	let mut v: Vec<Night> = cursor.try_collect().await.unwrap();
 
 	resp.msg = "Success".to_string();
@@ -30,7 +32,8 @@ pub async fn get_one_night(
 	let mut resp = ResponseNight::default();
 	match ObjectId::from_str(&params) {
 		Ok(oid) => {
-			let db_req = Night::get_night(state.night_collection, oid).await;
+			let db_req =
+				Night::get_night(state.db_connection.collection::<Night>("nights"), oid).await;
 
 			match db_req {
 				Ok(res) =>
@@ -58,10 +61,13 @@ pub async fn get_one_night(
 pub async fn create_night(
 	Json(payload): Json<Craziness>,
 	Extension(state): Extension<State>,
-) -> (StatusCode, Json<CreateNightResponse>) {
-	let mut resp = CreateNightResponse::default();
-	let db_req =
-		Night::create_night(state.night_collection, Night { id: None, craziness: payload }).await;
+) -> (StatusCode, Json<CreateResponse>) {
+	let mut resp = CreateResponse::default();
+	let db_req = Night::create_night(
+		state.db_connection.collection::<Night>("nights"),
+		Night { id: None, craziness: payload },
+	)
+	.await;
 
 	match db_req {
 		Ok(res) => {
@@ -83,7 +89,8 @@ pub async fn delete_night(
 	let mut resp = DeleteNightResponse::default();
 	match ObjectId::from_str(&params) {
 		Ok(oid) => {
-			let db_req = Night::delete_night(state.night_collection, oid).await;
+			let db_req =
+				Night::delete_night(state.db_connection.collection::<Night>("nights"), oid).await;
 
 			match db_req {
 				Ok(res) => {
@@ -112,7 +119,9 @@ pub async fn edit_night(
 	let mut resp = EditNightResponse::default();
 	match ObjectId::from_str(&params) {
 		Ok(oid) => {
-			let db_req = Night::edit_night(state.night_collection, oid, payload).await;
+			let db_req =
+				Night::edit_night(state.db_connection.collection::<Night>("nights"), oid, payload)
+					.await;
 
 			match db_req {
 				Ok(res) => {

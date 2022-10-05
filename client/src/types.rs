@@ -28,3 +28,17 @@ pub struct EditResponse {
 	pub msg: String,
 	pub data: Option<Bson>,
 }
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy, serde::Serialize, serde::Deserialize)]
+pub enum AppState {
+	LoginRegister,
+	Editing,
+	Viewing,
+	Submit,
+}
+
+impl Default for AppState {
+	fn default() -> Self {
+		Self::LoginRegister
+	}
+}
