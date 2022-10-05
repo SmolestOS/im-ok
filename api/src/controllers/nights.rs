@@ -9,12 +9,6 @@ use futures::stream::TryStreamExt;
 use mongodb::bson::{oid::ObjectId, Bson};
 
 #[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct CreateResponse {
-	msg: String,
-	data: Option<Bson>,
-}
-
-#[derive(serde::Serialize, serde::Deserialize, Default)]
 pub struct ResponseNights {
 	msg: String,
 	data: Option<Vec<Night>>,
@@ -72,6 +66,12 @@ pub async fn get_one_night(
 			(StatusCode::BAD_REQUEST, Json(resp))
 		},
 	}
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Default)]
+pub struct CreateResponse {
+	msg: String,
+	data: Option<Bson>,
 }
 
 pub async fn create_night(
