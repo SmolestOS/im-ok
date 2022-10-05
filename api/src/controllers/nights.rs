@@ -6,9 +6,19 @@ use crate::{
 };
 use axum::{extract::Path, http::StatusCode, Extension, Json};
 use futures::stream::TryStreamExt;
-use mongodb::bson::oid::ObjectId;
+use mongodb::bson::{oid::ObjectId, Bson};
 
-use super::{CreateResponse, DeleteResponse, EditResponse, ResponseNight, ResponseNights};
+#[derive(serde::Serialize, serde::Deserialize, Default)]
+pub struct CreateResponse {
+	msg: String,
+	data: Option<Bson>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Default)]
+pub struct ResponseNights {
+	msg: String,
+	data: Option<Vec<Night>>,
+}
 
 pub async fn get_all_nights(
 	Extension(state): Extension<State>,
@@ -23,6 +33,12 @@ pub async fn get_all_nights(
 	v.sort_by(|a, b| a.craziness.date.cmp(&b.craziness.date));
 	resp.data = Some(v);
 	(StatusCode::CREATED, Json(resp))
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Default)]
+pub struct ResponseNight {
+	msg: String,
+	data: Option<Night>,
 }
 
 pub async fn get_one_night(
@@ -82,6 +98,12 @@ pub async fn create_night(
 	}
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Default)]
+pub struct DeleteResponse {
+	msg: String,
+	data: Option<ObjectId>,
+}
+
 pub async fn delete_night(
 	Path(params): Path<String>,
 	Extension(state): Extension<State>,
@@ -109,6 +131,12 @@ pub async fn delete_night(
 			(StatusCode::BAD_REQUEST, Json(resp))
 		},
 	}
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Default)]
+pub struct EditResponse {
+	msg: String,
+	data: Option<Bson>,
 }
 
 pub async fn edit_night(
