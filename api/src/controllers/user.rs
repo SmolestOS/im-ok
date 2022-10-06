@@ -49,17 +49,6 @@ pub async fn login_user(
 	)
 	.await;
 
-	/*    match db_req {
-	Ok(res) => {
-		resp.msg = "Logged in successfully".to_string();
-		resp.data = res.unwrap().id;
-		(StatusCode::OK, Json(resp))
-	},
-	Err(err) => {
-		resp.msg = err.to_string();
-		(StatusCode::BAD_REQUEST, Json(resp))
-	},
-	}*/
 	match db_req {
 		Ok(res) =>
 			if let Some(user) = res {
