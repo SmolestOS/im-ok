@@ -1,6 +1,9 @@
 use crate::{
 	datepicker::DatePicker,
-	models::{Craziness, Drunkness, Night, User},
+	models::{
+		night::{Craziness, Drunkness, Night, User},
+		user,
+	},
 	types::AppState,
 };
 use bson::doc;
@@ -50,6 +53,31 @@ impl Default for ImOk {
 }
 
 impl ImOk {
+	pub fn new_with_state(state: AppState) -> Self {
+		println!("peos\n!");
+		let mut night_entries = Vec::<Night>::new();
+		for i in Night::get_all_nights()
+			.unwrap()
+			.into_json::<crate::types::ResponseNights>()
+			.unwrap()
+			.data
+			.unwrap()
+			.iter()
+		{
+			night_entries.push(i.clone());
+		}
+
+		Self {
+			craziness: Craziness::default(),
+			other_city: String::new(),
+			night_entries: night_entries.clone(),
+			selected_night: None,
+			appstate: state,
+			username: String::from("username"),
+			password: String::from("password"),
+		}
+	}
+
 	/// Called once before the first frame.
 	pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
 		// This is also where you can customize the look at feel of egui using
@@ -57,11 +85,29 @@ impl ImOk {
 
 		// Load previous app state (if any).
 		// Note that you must enable the `persistence` feature for this to work.
+
+		let mut logged_in: bool = false;
+
 		if let Some(storage) = cc.storage {
-			return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default()
+			match eframe::get_value::<String>(storage, "TOKEN") {
+				Some(resp) =>
+					if resp.is_empty() {
+						println!("{:?}", resp);
+						logged_in = false;
+					} else {
+						println!("{:?}", resp);
+						logged_in = true;
+					},
+				None => {
+					logged_in = false;
+				},
+			}
 		}
 
-		Default::default()
+		match logged_in {
+			true => Self::new_with_state(AppState::Submit),
+			false => Default::default(),
+		}
 	}
 
 	/// Helper function for updating the `night_entries`
@@ -98,7 +144,6 @@ impl eframe::App for ImOk {
 			username,
 			password,
 		} = self;
-
 		// Examples of how to create different panels and windows.
 		// Pick whichever suits you.
 		// Tip: a good default choice is to just keep the `CentralPanel`.
@@ -108,6 +153,14 @@ impl eframe::App for ImOk {
 			// The top panel is often a good place for a menu bar:
 			egui::menu::bar(ui, |ui| {
 				ui.menu_button("File", |ui| {
+					if ui.button("Logout").clicked() {
+						appstate.set_app_state(AppState::LoginRegister);
+						eframe::set_value::<String>(
+							_frame.storage_mut().unwrap(),
+							"TOKEN",
+							&"".to_string(),
+						);
+					}
 					if ui.button("Quit").clicked() {
 						_frame.close();
 					}
@@ -218,6 +271,25 @@ impl eframe::App for ImOk {
 						ui.add_space(10.0);
 						if ui.add(egui::Button::new("Register")).clicked() {
 							// Register API call
+							let user = user::User {
+								id: None,
+								username: username.to_string(),
+								password: password.to_string(),
+							};
+							match user::User::register(user) {
+								Ok(resp) => {
+									println!("{:?}", resp);
+									eframe::set_value::<String>(
+										_frame.storage_mut().unwrap(),
+										"TOKEN",
+										&"kavlaki".to_string(),
+									);
+									appstate.set_app_state(AppState::Submit)
+								},
+								Err(err) => {
+									println!("{:?}", err);
+								},
+							}
 						}
 					});
 				});

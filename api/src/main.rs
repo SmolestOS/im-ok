@@ -33,7 +33,7 @@ async fn main() {
 
 	let database = establish_connection().await;
 
-	let users_routes = Router::new().route("/new", post(create_user));
+	let users_routes = Router::new().route("/register", post(create_user));
 	let night_routes = Router::new()
 		.route("/", get(get_all_nights))
 		.route("/new", post(create_night))
