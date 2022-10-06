@@ -10,7 +10,7 @@ pub struct User {
 }
 
 impl User {
-	pub async fn create_night(
+	pub async fn create_user(
 		collection: mongodb::Collection<User>,
 		item: User,
 	) -> std::result::Result<InsertOneResult, Error> {

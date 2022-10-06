@@ -12,7 +12,7 @@ pub async fn create_user(
 	Extension(state): Extension<State>,
 ) -> (StatusCode, Json<CreateResponse>) {
 	let mut resp = CreateResponse::default();
-	let db_req = User::create_night(
+	let db_req = User::create_user(
 		state.db_connection.collection::<User>("users"),
 		User { id: None, username: payload.username, password: payload.password },
 	)
