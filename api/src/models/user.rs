@@ -1,4 +1,9 @@
-use mongodb::{bson::oid::ObjectId, error::Error, results::InsertOneResult};
+use mongodb::{
+	bson::{self, oid::ObjectId},
+	error::Error,
+	options::FindOneOptions,
+	results::InsertOneResult,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
@@ -15,5 +20,18 @@ impl User {
 		item: User,
 	) -> std::result::Result<InsertOneResult, Error> {
 		collection.insert_one(item, None).await
+	}
+
+	pub async fn get_user(
+		collection: mongodb::Collection<User>,
+		user: User,
+	) -> std::result::Result<Option<User>, Error> {
+		let find_option = FindOneOptions::builder().build();
+		collection
+			.find_one(
+				bson::doc! {"username": user.username, "password": user.password},
+				find_option,
+			)
+			.await
 	}
 }
