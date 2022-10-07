@@ -1,4 +1,4 @@
-use super::models::Night;
+use super::models::night::Night;
 use bson::{oid::ObjectId, Bson};
 
 #[derive(serde::Serialize, serde::Deserialize, Default)]
@@ -40,5 +40,11 @@ pub enum AppState {
 impl Default for AppState {
 	fn default() -> Self {
 		Self::LoginRegister
+	}
+}
+
+impl AppState {
+	pub fn set_app_state(&mut self, state: AppState) {
+		*self = state;
 	}
 }
