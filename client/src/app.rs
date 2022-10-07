@@ -90,15 +90,14 @@ impl ImOk {
 
 		if let Some(storage) = cc.storage {
 			match eframe::get_value::<String>(storage, "TOKEN") {
-				Some(resp) => {
+				Some(resp) =>
 					if resp.is_empty() {
 						println!("{:?}", resp);
 						logged_in = false;
 					} else {
 						println!("{:?}", resp);
 						logged_in = true;
-					}
-				},
+					},
 				None => {
 					logged_in = false;
 				},
