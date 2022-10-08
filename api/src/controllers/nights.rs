@@ -2,7 +2,7 @@ use crate::{
 	models::night::{Night, NightJSONRequest},
 	State,
 };
-use axum::{http::StatusCode, Extension, Json};
+use axum::{extract::Path, http::StatusCode, Extension, Json};
 use mongodb::bson::Bson;
 
 #[derive(serde::Serialize, serde::Deserialize, Default)]
@@ -84,115 +84,102 @@ pub async fn get_all_nights(
 	(code, Json(resp))
 }
 
-// #[derive(serde::Serialize, serde::Deserialize, Default)]
-// pub struct ResponseNight {
-// 	msg: String,
-// 	data: Option<Night>,
-// }
+#[derive(serde::Serialize, serde::Deserialize, Default)]
+pub struct ResponseNight {
+	msg: String,
+	data: Option<Night>,
+}
 
-// pub async fn get_one_night(
-// 	Path(params): Path<String>,
-// 	Extension(state): Extension<State>,
-// ) -> (StatusCode, Json<ResponseNight>) {
-// 	let mut resp = ResponseNight::default();
-// 	match ObjectId::from_str(&params) {
-// 		Ok(oid) => {
-// 			let db_req =
-// 				Night::get_night(state.db_connection.collection::<Night>("nights"), oid).await;
+pub async fn get_one_night(
+	Path(item_id): Path<i32>,
+	Extension(state): Extension<State>,
+) -> (StatusCode, Json<ResponseNight>) {
+	let mut resp = ResponseNight::default();
+	let mut code = StatusCode::OK;
 
-// 			match db_req {
-// 				Ok(res) => {
-// 					if let Some(night) = res {
-// 						resp.data = Some(night);
-// 						resp.msg = "Success".to_string();
-// 						(StatusCode::OK, Json(resp))
-// 					} else {
-// 						resp.msg = "Not found".to_string();
-// 						(StatusCode::BAD_REQUEST, Json(resp))
-// 					}
-// 				},
-// 				Err(err) => {
-// 					resp.msg = err.to_string();
-// 					(StatusCode::BAD_REQUEST, Json(resp))
-// 				},
-// 			}
-// 		},
-// 		Err(err) => {
-// 			resp.msg = err.to_string();
-// 			(StatusCode::BAD_REQUEST, Json(resp))
-// 		},
-// 	}
-// }
+	match Night::get_night(&mut state.db_connection.get().unwrap(), item_id) {
+		Ok(night) => {
+			resp.msg = "Found".to_string();
+			resp.data = Some(night);
+		},
+		Err(err) =>
+			if let diesel::result::Error::NotFound = err {
+				resp.msg = format!("Night with id: {} not found ", item_id);
+				resp.data = None;
+				code = StatusCode::NOT_FOUND;
+			} else {
+				resp.msg = err.to_string();
+				resp.data = None;
+				code = StatusCode::NOT_FOUND;
+			},
+	}
 
-// #[derive(serde::Serialize, serde::Deserialize, Default)]
-// pub struct DeleteResponse {
-// 	msg: String,
-// 	data: Option<ObjectId>,
-// }
+	(code, Json(resp))
+}
 
-// pub async fn delete_night(
-// 	Path(params): Path<String>,
-// 	Extension(state): Extension<State>,
-// ) -> (StatusCode, Json<DeleteResponse>) {
-// 	let mut resp = DeleteResponse::default();
-// 	match ObjectId::from_str(&params) {
-// 		Ok(oid) => {
-// 			let db_req =
-// 				Night::delete_night(state.db_connection.collection::<Night>("nights"), oid).await;
+#[derive(serde::Serialize, serde::Deserialize, Default)]
+pub struct DeleteResponse {
+	msg: String,
+	data: Option<usize>,
+}
 
-// 			match db_req {
-// 				Ok(res) => {
-// 					resp.data = Some(oid);
-// 					resp.msg = format!("Successfully deleted {} objects", res.deleted_count);
-// 					(StatusCode::OK, Json(resp))
-// 				},
-// 				Err(err) => {
-// 					resp.msg = err.to_string();
-// 					(StatusCode::BAD_REQUEST, Json(resp))
-// 				},
-// 			}
-// 		},
-// 		Err(err) => {
-// 			resp.msg = err.to_string();
-// 			(StatusCode::BAD_REQUEST, Json(resp))
-// 		},
-// 	}
-// }
+pub async fn delete_night(
+	Path(item_id): Path<i32>,
+	Extension(state): Extension<State>,
+) -> (StatusCode, Json<DeleteResponse>) {
+	let mut resp = DeleteResponse::default();
+	let mut code = StatusCode::OK;
 
-// #[derive(serde::Serialize, serde::Deserialize, Default)]
-// pub struct EditResponse {
-// 	msg: String,
-// 	data: Option<Bson>,
-// }
+	match Night::delete_night(&mut state.db_connection.get().unwrap(), item_id) {
+		Ok(count) =>
+			if count.eq(&1) {
+				resp.msg = format!("Deleted Night with id: {}", item_id);
+				resp.data = Some(count);
+			} else {
+				resp.msg = format!("Night with id: {} not found ", item_id);
+				resp.data = None;
+				code = StatusCode::NOT_FOUND;
+			},
+		Err(err) => {
+			resp.msg = err.to_string();
+			resp.data = None;
+			code = StatusCode::NOT_FOUND;
+		},
+	}
 
-// pub async fn edit_night(
-// 	Path(params): Path<String>,
-// 	Json(payload): Json<Craziness>,
-// 	Extension(state): Extension<State>,
-// ) -> (StatusCode, Json<EditResponse>) {
-// 	let mut resp = EditResponse::default();
-// 	match ObjectId::from_str(&params) {
-// 		Ok(oid) => {
-// 			let db_req =
-// 				Night::edit_night(state.db_connection.collection::<Night>("nights"), oid, payload)
-// 					.await;
+	(code, Json(resp))
+}
 
-// 			match db_req {
-// 				Ok(res) => {
-// 					resp.data = res.upserted_id;
-// 					resp.msg = "Success".to_string();
-// 					(StatusCode::OK, Json(resp))
-// 				},
+#[derive(serde::Serialize, serde::Deserialize, Default)]
+pub struct EditResponse {
+	msg: String,
+	data: Option<usize>,
+}
 
-// 				Err(err) => {
-// 					resp.msg = err.to_string();
-// 					(StatusCode::BAD_REQUEST, Json(resp))
-// 				},
-// 			}
-// 		},
-// 		Err(err) => {
-// 			resp.msg = err.to_string();
-// 			(StatusCode::BAD_REQUEST, Json(resp))
-// 		},
-// 	}
-// }
+pub async fn edit_night(
+	Path(item_id): Path<i32>,
+	Json(payload): Json<NightJSONRequest>,
+	Extension(state): Extension<State>,
+) -> (StatusCode, Json<EditResponse>) {
+	let mut resp = EditResponse::default();
+	let mut code = StatusCode::OK;
+
+	match Night::edit_night(&mut state.db_connection.get().unwrap(), item_id, payload) {
+		Ok(count) =>
+			if count.eq(&1) {
+				resp.msg = format!("Updated Night with id: {}", item_id);
+				resp.data = Some(count);
+			} else {
+				resp.msg = format!("Night with id: {} not found ", item_id);
+				resp.data = None;
+				code = StatusCode::NOT_FOUND;
+			},
+		Err(err) => {
+			resp.msg = err.to_string();
+			resp.data = None;
+			code = StatusCode::NOT_FOUND;
+		},
+	}
+
+	(code, Json(resp))
+}

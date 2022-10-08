@@ -56,16 +56,19 @@ pub async fn login_user(
 	let mut code = StatusCode::OK;
 
 	match User::get_user(&mut state.db_connection.get().unwrap(), payload) {
-		Ok(index) => {
+		Ok(user) => {
 			resp.msg = "Logged in succesfully".to_string();
-			resp.data = Some(index);
-			code = StatusCode::OK;
+			resp.data = Some(user);
 		},
 		Err(err) =>
 			if let diesel::result::Error::NotFound = err {
-				resp.msg = "User not or wrong credentials".to_string();
+				resp.msg = "User not found or wrong credentials".to_string();
 				resp.data = None;
-				code = StatusCode::BAD_REQUEST;
+				code = StatusCode::NOT_FOUND;
+			} else {
+				resp.msg = err.to_string();
+				resp.data = None;
+				code = StatusCode::NOT_FOUND;
 			},
 	}
 

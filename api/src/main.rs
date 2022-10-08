@@ -3,8 +3,12 @@ mod db;
 mod models;
 mod schema;
 
+use crate::controllers::{
+	nights::{create_night, delete_night, edit_night, get_all_nights, get_one_night},
+	user::login_user,
+};
 use axum::{
-	routing::{get, post},
+	routing::{delete, get, patch, post},
 	Router,
 };
 use controllers::user::register_user;
@@ -15,11 +19,6 @@ use diesel::{
 };
 use std::net::SocketAddr;
 use tower_http::add_extension::AddExtensionLayer;
-
-use crate::controllers::{
-	nights::{create_night, get_all_nights},
-	user::login_user,
-};
 
 #[derive(Clone)]
 pub struct State {
@@ -43,11 +42,12 @@ async fn main() {
 		.route("/register", post(register_user))
 		.route("/login", post(login_user));
 
-	let night_routes =
-		Router::new().route("/", get(get_all_nights)).route("/new", post(create_night));
-	// 	.route("/:id", get(get_one_night))
-	// 	.route("/:id", patch(edit_night))
-	// 	.route("/:id", delete(delete_night));
+	let night_routes = Router::new()
+		.route("/", get(get_all_nights))
+		.route("/new", post(create_night))
+		.route("/:id", get(get_one_night))
+		.route("/:id", delete(delete_night))
+		.route("/:id", patch(edit_night));
 
 	let app = Router::new()
 		// NOTE: Nesting allow us to have endpoints with below
