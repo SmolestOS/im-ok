@@ -57,7 +57,7 @@ pub async fn login_user(
 
 	match User::get_user(
 		&mut state.db_connection.get().unwrap(),
-		UserJSONRequest { username: payload.username, password: payload.password },
+		payload,
 	) {
 		Ok(index) => {
 			resp.msg = "Logged in succesfully".to_string();
