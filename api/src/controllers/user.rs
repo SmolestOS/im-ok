@@ -55,10 +55,7 @@ pub async fn login_user(
 	let mut resp = LoginResponse::default();
 	let mut code = StatusCode::OK;
 
-	match User::get_user(
-		&mut state.db_connection.get().unwrap(),
-		payload,
-	) {
+	match User::get_user(&mut state.db_connection.get().unwrap(), payload) {
 		Ok(index) => {
 			resp.msg = "Logged in succesfully".to_string();
 			resp.data = Some(index);
