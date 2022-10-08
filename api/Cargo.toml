@@ -16,6 +16,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 chrono = {version = "0.4.22", features = ["serde"] }
 futures = "0.3.24"
 diesel = { version = "2.0.0", features = ["postgres", "r2d2", "chrono"] }
+diesel-derive-enum = { version = "2.0.0-rc.0", features = ["postgres"] }
 dotenvy = "0.15"
 
 [dependencies.mongodb]

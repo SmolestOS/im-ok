@@ -1,33 +1,88 @@
-// use std::str::FromStr;
+use crate::{
+	models::night::{Night, NightJSONRequest},
+	State,
+};
+use axum::{http::StatusCode, Extension, Json};
+use mongodb::bson::Bson;
 
-// use crate::{
-// 	models::{craziness::Craziness, night::Night},
-// 	State,
-// };
-// use axum::{extract::Path, http::StatusCode, Extension, Json};
-// use futures::stream::TryStreamExt;
-// use mongodb::bson::{oid::ObjectId, Bson};
+#[derive(serde::Serialize, serde::Deserialize, Default)]
+pub struct CreateResponse {
+	msg: String,
+	data: Option<Bson>,
+}
 
-// #[derive(serde::Serialize, serde::Deserialize, Default)]
-// pub struct ResponseNights {
-// 	msg: String,
-// 	data: Option<Vec<Night>>,
-// }
+pub async fn create_night(
+	Json(payload): Json<NightJSONRequest>,
+	Extension(state): Extension<State>,
+) -> (StatusCode, Json<CreateResponse>) {
+	let mut resp = CreateResponse::default();
+	let mut code = StatusCode::OK;
 
-// pub async fn get_all_nights(
-// 	Extension(state): Extension<State>,
-// ) -> (StatusCode, Json<ResponseNights>) {
-// 	let mut resp = ResponseNights::default();
-// 	let cursor = Night::get_all_nights(state.db_connection.collection::<Night>("nights"))
-// 		.await
-// 		.unwrap();
-// 	let mut v: Vec<Night> = cursor.try_collect().await.unwrap();
+	match Night::create_night(&mut state.db_connection.get().unwrap(), payload) {
+		Ok(index) => {
+			resp.msg = "Created".to_string();
+			resp.data = Some(Bson::from(index.to_string()));
+		},
+		Err(err) => {
+			if let diesel::result::Error::DatabaseError(
+				diesel::result::DatabaseErrorKind::UniqueViolation,
+				_,
+			) = err
+			{
+				resp.msg = "User already exists".to_string();
+				resp.data = Some(Bson::default());
+				code = StatusCode::BAD_REQUEST;
+			} else {
+				resp.msg = err.to_string();
+				resp.data = Some(Bson::default());
+				code = StatusCode::BAD_REQUEST;
+			}
+		},
+	}
 
-// 	resp.msg = "Success".to_string();
-// 	v.sort_by(|a, b| a.craziness.date.cmp(&b.craziness.date));
-// 	resp.data = Some(v);
-// 	(StatusCode::CREATED, Json(resp))
-// }
+	(code, Json(resp))
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Default)]
+pub struct ResponseNights {
+	msg: String,
+	data: Option<Vec<Night>>,
+}
+
+pub async fn get_all_nights(
+	Extension(state): Extension<State>,
+) -> (StatusCode, Json<ResponseNights>) {
+	let mut resp = ResponseNights::default();
+	let mut code = StatusCode::OK;
+
+	match Night::get_all_nights(&mut state.db_connection.get().unwrap()) {
+		Ok(mut index) => {
+			resp.msg = "Created".to_string();
+			index.sort_by(|a, b| a.created_at.cmp(&b.created_at));
+			resp.data = Some(index);
+		},
+		Err(err) => {
+			if let diesel::result::Error::DatabaseError(
+				diesel::result::DatabaseErrorKind::UniqueViolation,
+				_,
+			) = err
+			{
+				resp.msg = "User already exists".to_string();
+				resp.data = None;
+				code = StatusCode::BAD_REQUEST;
+			} else {
+				resp.msg = err.to_string();
+				resp.data = None;
+				code = StatusCode::BAD_REQUEST;
+			}
+		},
+	};
+
+	// resp.msg = "Success".to_string();
+	// v.sort_by(|a, b| a.craziness.date.cmp(&b.craziness.date));
+	// resp.data = Some(v);
+	(code, Json(resp))
+}
 
 // #[derive(serde::Serialize, serde::Deserialize, Default)]
 // pub struct ResponseNight {
@@ -46,7 +101,7 @@
 // 				Night::get_night(state.db_connection.collection::<Night>("nights"), oid).await;
 
 // 			match db_req {
-// 				Ok(res) =>
+// 				Ok(res) => {
 // 					if let Some(night) = res {
 // 						resp.data = Some(night);
 // 						resp.msg = "Success".to_string();
@@ -54,42 +109,13 @@
 // 					} else {
 // 						resp.msg = "Not found".to_string();
 // 						(StatusCode::BAD_REQUEST, Json(resp))
-// 					},
+// 					}
+// 				},
 // 				Err(err) => {
 // 					resp.msg = err.to_string();
 // 					(StatusCode::BAD_REQUEST, Json(resp))
 // 				},
 // 			}
-// 		},
-// 		Err(err) => {
-// 			resp.msg = err.to_string();
-// 			(StatusCode::BAD_REQUEST, Json(resp))
-// 		},
-// 	}
-// }
-
-// #[derive(serde::Serialize, serde::Deserialize, Default)]
-// pub struct CreateResponse {
-// 	msg: String,
-// 	data: Option<Bson>,
-// }
-
-// pub async fn create_night(
-// 	Json(payload): Json<Craziness>,
-// 	Extension(state): Extension<State>,
-// ) -> (StatusCode, Json<CreateResponse>) {
-// 	let mut resp = CreateResponse::default();
-// 	let db_req = Night::create_night(
-// 		state.db_connection.collection::<Night>("nights"),
-// 		Night { id: None, craziness: payload },
-// 	)
-// 	.await;
-
-// 	match db_req {
-// 		Ok(res) => {
-// 			resp.msg = "Success".to_string();
-// 			resp.data = Some(res.inserted_id);
-// 			(StatusCode::OK, Json(resp))
 // 		},
 // 		Err(err) => {
 // 			resp.msg = err.to_string();

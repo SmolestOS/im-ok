@@ -3,10 +3,10 @@ mod db;
 mod models;
 mod schema;
 
-// use crate::controllers::nights::{
-// 	create_night, delete_night, edit_night, get_all_nights, get_one_night,
-// };
-use axum::{routing::post, Router};
+use axum::{
+	routing::{get, post},
+	Router,
+};
 use controllers::user::register_user;
 use db::establish_connection;
 use diesel::{
@@ -16,7 +16,10 @@ use diesel::{
 use std::net::SocketAddr;
 use tower_http::add_extension::AddExtensionLayer;
 
-use crate::controllers::user::login_user;
+use crate::controllers::{
+	nights::{create_night, get_all_nights},
+	user::login_user,
+};
 
 #[derive(Clone)]
 pub struct State {
@@ -40,9 +43,8 @@ async fn main() {
 		.route("/register", post(register_user))
 		.route("/login", post(login_user));
 
-	// let night_routes = Router::new()
-	// 	.route("/", get(get_all_nights))
-	// 	.route("/new", post(create_night))
+	let night_routes =
+		Router::new().route("/", get(get_all_nights)).route("/new", post(create_night));
 	// 	.route("/:id", get(get_one_night))
 	// 	.route("/:id", patch(edit_night))
 	// 	.route("/:id", delete(delete_night));
@@ -51,7 +53,7 @@ async fn main() {
 		// NOTE: Nesting allow us to have endpoints with below
 		// the same endpoint - @charmitro
 		.nest("/users", users_routes)
-		//		.nest("/nights", night_routes)
+		.nest("/nights", night_routes)
 		.layer(AddExtensionLayer::new(State::new(database)));
 
 	let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
