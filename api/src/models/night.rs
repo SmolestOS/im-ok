@@ -33,7 +33,7 @@ pub struct Night {
 	pub created_at: NaiveDate,
 }
 
-#[derive(Serialize, Deserialize, AsChangeset)]
+#[derive(Serialize, Deserialize, AsChangeset, Debug)]
 #[diesel(table_name = nights)]
 pub struct NightJSONRequest {
 	pub user_id: i32,

@@ -1,7 +1,7 @@
 use crate::{
 	datepicker::DatePicker,
 	models::{
-		night::{Craziness, Drunkness, Night, User},
+		night::{Drunkness, NewNightDB, Night, NightJSONRequest},
 		user,
 	},
 	types::AppState,
@@ -16,7 +16,7 @@ pub struct ImOk {
 	// Example stuff:
 	// this how you opt-out of serialization of a member
 	#[serde(skip)]
-	craziness: Craziness,
+	night: Night,
 	other_city: String,
 	night_entries: Vec<Night>,
 	selected_night: Option<Night>,
@@ -41,7 +41,7 @@ impl Default for ImOk {
 		}
 
 		Self {
-			craziness: Craziness::default(),
+			night: Night::default(),
 			other_city: String::new(),
 			night_entries: night_entries.clone(),
 			selected_night: None,
@@ -68,7 +68,7 @@ impl ImOk {
 		}
 
 		Self {
-			craziness: Craziness::default(),
+			night: Night::default(),
 			other_city: String::new(),
 			night_entries: night_entries.clone(),
 			selected_night: None,
@@ -90,14 +90,15 @@ impl ImOk {
 
 		if let Some(storage) = cc.storage {
 			match eframe::get_value::<String>(storage, "TOKEN") {
-				Some(resp) =>
+				Some(resp) => {
 					if resp.is_empty() {
 						println!("{:?}", resp);
 						logged_in = false;
 					} else {
 						println!("{:?}", resp);
 						logged_in = true;
-					},
+					}
+				},
 				None => {
 					logged_in = false;
 				},
@@ -136,7 +137,7 @@ impl eframe::App for ImOk {
 	/// Put your widgets into a `SidePanel`, `TopPanel`, `CentralPanel`, `Window` or `Area`.
 	fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
 		let Self {
-			craziness,
+			night: craziness,
 			other_city,
 			night_entries,
 			selected_night,
@@ -175,74 +176,42 @@ impl eframe::App for ImOk {
 
 		egui::SidePanel::left("side_panel").min_width(120.0).show(ctx, |ui| {
 			egui::ScrollArea::both().show(ui, |ui| {
-				egui::CollapsingHeader::new("Lostsaka").show(ui, |ui| {
+				egui::CollapsingHeader::new("Nights").show(ui, |ui| {
 					for i in night_entries.iter() {
-						if i.craziness.user == User::Lostsaka {
-							let response = ui.add(egui::SelectableLabel::new(
-								false,
-								format!(
-									"{} {}/{}/{}",
-									i.craziness.date.weekday(),
-									i.craziness.date.day(),
-									i.craziness.date.month(),
-									i.craziness.date.year()
-								),
-							));
-							if response.clicked() {
-								*selected_night = Some(i.clone());
-								*appstate = AppState::Viewing;
-							}
-							response.context_menu(|ui| {
-								if ui.button("Edit").clicked() {
-									*appstate = AppState::Editing;
-									*selected_night = Some(i.clone());
-									ui.close_menu();
-								}
-								if ui.button("Delete").clicked() {
-									Night::delete_night(i.id.unwrap()).unwrap();
-									ui.close_menu();
-								}
-							});
+						let response = ui.add(egui::SelectableLabel::new(
+							false,
+							format!(
+								"{} {}/{}/{}",
+								i.created_at.weekday(),
+								i.created_at.day(),
+								i.created_at.month(),
+								i.created_at.year()
+							),
+						));
+						if response.clicked() {
+							*selected_night = Some(i.clone());
+							*appstate = AppState::Viewing;
 						}
-					}
-				});
-
-				egui::CollapsingHeader::new("Gkasma").show(ui, |ui| {
-					for i in night_entries.iter() {
-						if i.craziness.user == User::Gkasma {
-							let response = ui.add(egui::SelectableLabel::new(
-								false,
-								format!(
-									"{} {}/{}/{}",
-									i.craziness.date.weekday(),
-									i.craziness.date.day(),
-									i.craziness.date.month(),
-									i.craziness.date.year()
-								),
-							));
-							if response.clicked() {
+						response.context_menu(|ui| {
+							if ui.button("Edit").clicked() {
+								*appstate = AppState::Editing;
 								*selected_night = Some(i.clone());
-								*appstate = AppState::Viewing;
+								ui.close_menu();
 							}
-							response.context_menu(|ui| {
-								if ui.button("Edit").clicked() {
-									*appstate = AppState::Editing;
-									*selected_night = Some(i.clone());
-									ui.close_menu();
-								}
-								if ui.button("Delete").clicked() {
-									Night::delete_night(i.id.unwrap()).unwrap();
-									ui.close_menu();
-								}
-							});
-						}
+							if ui.button("Delete").clicked() {
+								Night::delete_night(i.id).unwrap();
+								ui.close_menu();
+							}
+						});
 					}
-				});
-
-				if ui.add(egui::Button::new("Refresh")).clicked() {
-					Self::refresh(night_entries);
-				}
+				})
 			});
+
+			// egui::CollapsingHeader::new("Gkasma").show(ui, |ui| {
+			// 	if ui.add(egui::Button::new("Refresh")).clicked() {
+			// 		Self::refresh(night_entries);
+			// 	}
+			// });
 		});
 		egui::TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
 			if *appstate == AppState::Viewing && ui.button("Exit viewing mode").clicked() {
@@ -301,58 +270,52 @@ impl eframe::App for ImOk {
 				egui::CentralPanel::default().show(ctx, |ui| {
 					// The central panel the region left after adding TopPanel's and SidePanel's
 					ui.heading("Users");
-					egui::ComboBox::from_id_source("my-box")
-						.selected_text(format!(
-							"{:?}",
-							selected_night.as_ref().unwrap().craziness.user
-						))
-						.show_ui(ui, |ui| {
-							ui.selectable_value(
-								&mut selected_night.as_mut().unwrap().craziness.user,
-								User::Lostsaka,
-								"Lostsaka",
-							);
-							ui.selectable_value(
-								&mut selected_night.as_mut().unwrap().craziness.user,
-								User::Gkasma,
-								"Gkasma",
-							);
-						});
+					// egui::ComboBox::from_id_source("my-box")
+					// 	.selected_text(format!("{:?}", selected_night.as_ref().unwrap().user))
+					// 	.show_ui(ui, |ui| {
+					// 		ui.selectable_value(
+					// 			&mut selected_night.as_mut().unwrap().user,
+					// 			User::Lostsaka,
+					// 			"Lostsaka",
+					// 		);
+					// 		ui.selectable_value(
+					// 			&mut selected_night.as_mut().unwrap().user,
+					// 			User::Gkasma,
+					// 			"Gkasma",
+					// 		);
+					// 	});
 					ui.separator();
 					ui.heading("Drunk levels");
 					egui::ComboBox::from_id_source("my-box2")
-						.selected_text(format!(
-							"{:?}",
-							selected_night.as_mut().unwrap().craziness.drunkness
-						))
+						.selected_text(format!("{:?}", selected_night.as_mut().unwrap().drunkness))
 						.show_ui(ui, |ui| {
 							ui.selectable_value(
-								&mut selected_night.as_mut().unwrap().craziness.drunkness,
+								&mut selected_night.as_mut().unwrap().drunkness,
 								Drunkness::Cool,
 								"Cool",
 							);
 							ui.selectable_value(
-								&mut selected_night.as_mut().unwrap().craziness.drunkness,
+								&mut selected_night.as_mut().unwrap().drunkness,
 								Drunkness::LittleHead,
 								"LittleHead",
 							);
 							ui.selectable_value(
-								&mut selected_night.as_mut().unwrap().craziness.drunkness,
+								&mut selected_night.as_mut().unwrap().drunkness,
 								Drunkness::Bream,
 								"Bream",
 							);
 							ui.selectable_value(
-								&mut selected_night.as_mut().unwrap().craziness.drunkness,
+								&mut selected_night.as_mut().unwrap().drunkness,
 								Drunkness::Gnat,
 								"Gnat",
 							);
 							ui.selectable_value(
-								&mut selected_night.as_mut().unwrap().craziness.drunkness,
+								&mut selected_night.as_mut().unwrap().drunkness,
 								Drunkness::Ant,
 								"Ant",
 							);
 							ui.selectable_value(
-								&mut selected_night.as_mut().unwrap().craziness.drunkness,
+								&mut selected_night.as_mut().unwrap().drunkness,
 								Drunkness::ImOk,
 								"ImOk",
 							);
@@ -361,46 +324,41 @@ impl eframe::App for ImOk {
 					ui.separator();
 					ui.heading("City");
 					ui.radio_value(
-						&mut selected_night.as_mut().unwrap().craziness.location,
+						&mut selected_night.as_mut().unwrap().location,
 						"Athens".to_string(),
 						"Athens",
 					);
 					ui.radio_value(
-						&mut selected_night.as_mut().unwrap().craziness.location,
+						&mut selected_night.as_mut().unwrap().location,
 						"Korinthos".to_string(),
 						"Korinthos",
 					);
 					ui.radio_value(
-						&mut selected_night.as_mut().unwrap().craziness.location,
+						&mut selected_night.as_mut().unwrap().location,
 						"Other".to_string(),
 						"Other",
 					);
 
-					if selected_night.as_mut().unwrap().craziness.location == *"Other".to_string() {
+					if selected_night.as_mut().unwrap().location == *"Other".to_string() {
 						ui.label("Enter your city: ");
 						ui.text_edit_singleline(other_city);
 					}
 
 					ui.separator();
 					ui.heading("Night Activities");
-					ui.checkbox(&mut selected_night.as_mut().unwrap().craziness.coitus, "Coitus");
-					ui.checkbox(&mut selected_night.as_mut().unwrap().craziness.drive, "Driven");
-					ui.checkbox(
-						&mut selected_night.as_mut().unwrap().craziness.talked_2x,
-						"Talked_2x",
-					);
+					ui.checkbox(&mut selected_night.as_mut().unwrap().coitus, "Coitus");
+					ui.checkbox(&mut selected_night.as_mut().unwrap().drive, "Driven");
+					ui.checkbox(&mut selected_night.as_mut().unwrap().talked_2x, "Talked_2x");
 
 					ui.separator();
-					ui.text_edit_multiline(
-						&mut selected_night.as_mut().unwrap().craziness.description,
-					);
+					ui.text_edit_multiline(&mut selected_night.as_mut().unwrap().description);
 
 					ui.separator();
 					ui.heading("Date");
-					ui.add(DatePicker::new(
-						"date_picker",
-						&mut selected_night.as_mut().unwrap().craziness.date,
-					));
+					// ui.add(DatePicker::new(
+					// 	"date_picker",
+					// 	&mut selected_night.as_mut().unwrap().created_at.,
+					// ));
 
 					// Update entry to database
 					ui.separator();
@@ -409,20 +367,13 @@ impl eframe::App for ImOk {
 						// `craziness.location` with the other city
 						// or else the location on the database will be "Other". - @charmitro
 						if other_city.is_empty() {
-							let night = Night {
-								id: Some(selected_night.as_ref().unwrap().id.unwrap()),
-								craziness: selected_night.as_ref().unwrap().craziness.clone(),
-							};
-							Night::edit_night(night.id.unwrap(), night.craziness).unwrap();
+							Night::edit_night(selected_night.as_ref().unwrap().clone()).unwrap();
 						} else {
 							let night = Night {
-								id: Some(selected_night.as_ref().unwrap().id.unwrap()),
-								craziness: Craziness {
-									location: other_city.to_string(),
-									..selected_night.as_ref().unwrap().craziness.clone()
-								},
+								location: other_city.to_string(),
+								..selected_night.as_ref().unwrap().clone()
 							};
-							Night::edit_night(night.id.unwrap(), night.craziness).unwrap();
+							Night::edit_night(night).unwrap();
 						};
 					}
 				});
@@ -431,21 +382,18 @@ impl eframe::App for ImOk {
 			AppState::Viewing => {
 				egui::CentralPanel::default().show(ctx, |ui| {
 					// The central panel the region left after adding TopPanel's and SidePanel's
-					ui.heading(format!("{:?}", selected_night.as_ref().unwrap().craziness.user));
+					ui.heading(format!("{:?}", selected_night.as_ref().unwrap().user_id));
 
 					ui.separator();
 
 					ui.heading(format!(
 						"Drunk level: {:?}",
-						selected_night.as_ref().unwrap().craziness.drunkness
+						selected_night.as_ref().unwrap().drunkness
 					));
 
 					ui.separator();
 
-					ui.heading(format!(
-						"City: {}",
-						selected_night.as_ref().unwrap().craziness.location
-					));
+					ui.heading(format!("City: {}", selected_night.as_ref().unwrap().location));
 
 					ui.separator();
 
@@ -453,21 +401,21 @@ impl eframe::App for ImOk {
 					ui.add_enabled(
 						false,
 						egui::Checkbox::new(
-							&mut selected_night.as_ref().unwrap().craziness.coitus.clone(),
+							&mut selected_night.as_ref().unwrap().coitus.clone(),
 							"Coitus",
 						),
 					);
 					ui.add_enabled(
 						false,
 						egui::Checkbox::new(
-							&mut selected_night.as_ref().unwrap().craziness.drive.clone(),
+							&mut selected_night.as_ref().unwrap().drive.clone(),
 							"Driven",
 						),
 					);
 					ui.add_enabled(
 						false,
 						egui::Checkbox::new(
-							&mut selected_night.as_ref().unwrap().craziness.talked_2x.clone(),
+							&mut selected_night.as_ref().unwrap().talked_2x.clone(),
 							"Talked_2x",
 						),
 					);
@@ -477,28 +425,28 @@ impl eframe::App for ImOk {
 					ui.add_enabled(
 						false,
 						egui::TextEdit::multiline(
-							&mut selected_night.as_ref().unwrap().craziness.description.clone(),
+							&mut selected_night.as_ref().unwrap().description.clone(),
 						),
 					);
 
 					ui.separator();
 					ui.heading("Date");
-					ui.add(DatePicker::new(
-						"date_picker",
-						&mut selected_night.as_ref().unwrap().craziness.date.clone(),
-					));
+					// ui.add(DatePicker::new(
+					// 	"date_picker",
+					// 	&mut selected_night.as_ref().unwrap().date.clone(),
+					// ));
 				});
 			},
 			AppState::Submit => {
 				egui::CentralPanel::default().show(ctx, |ui| {
-					// The central panel the region left after adding TopPanel's and SidePanel's
-					ui.heading("Users");
-					egui::ComboBox::from_id_source("my-box")
-						.selected_text(format!("{:?}", craziness.user))
-						.show_ui(ui, |ui| {
-							ui.selectable_value(&mut craziness.user, User::Lostsaka, "Lostsaka");
-							ui.selectable_value(&mut craziness.user, User::Gkasma, "Gkasma");
-						});
+					// 	// The central panel the region left after adding TopPanel's and SidePanel's
+					// 	ui.heading("Users");
+					// 	egui::ComboBox::from_id_source("my-box")
+					// 		.selected_text(format!("{:?}", craziness.user_id))
+					// 		.show_ui(ui, |ui| {
+					// 			ui.selectable_value(&mut craziness.user_id, User::Lostsaka, "Lostsaka");
+					// 			ui.selectable_value(&mut craziness.user_id, User::Gkasma, "Gkasma");
+					// 		});
 					ui.separator();
 					ui.heading("Drunk levels");
 					egui::ComboBox::from_id_source("my-box2")
@@ -541,8 +489,8 @@ impl eframe::App for ImOk {
 					ui.text_edit_multiline(&mut craziness.description);
 
 					ui.separator();
-					ui.heading("Date");
-					ui.add(DatePicker::new("date_picker", &mut craziness.date));
+					// ui.heading("Date");
+					// ui.add(DatePicker::new("date_picker", &mut craziness.date));
 
 					// Submit entry to database
 					ui.separator();
@@ -551,22 +499,27 @@ impl eframe::App for ImOk {
 						// `craziness.location` with the other city
 						// or else the location on the database will be "Other". - @charmitro
 						if other_city.is_empty() {
-							let night = Night { id: None, craziness: craziness.clone() };
+							let night = NightJSONRequest {
+								user_id: craziness.user_id,
+								drunkness: craziness.drunkness,
+								coitus: craziness.coitus,
+								drive: craziness.drive,
+								talked_2x: craziness.talked_2x,
+								location: craziness.location.clone(),
+								description: craziness.description.clone(),
+							};
 							Night::create_night(night).unwrap();
 						} else {
-							let night = Night {
-								id: None,
-								craziness: Craziness {
-									user: craziness.user,
-									drunkness: craziness.drunkness,
-									coitus: craziness.coitus,
-									drive: craziness.drive,
-									talked_2x: craziness.talked_2x,
-									location: other_city.to_string(),
-									description: craziness.description.clone(),
-									date: craziness.date,
-								},
+							let night = NightJSONRequest {
+								user_id: craziness.user_id,
+								drunkness: craziness.drunkness,
+								coitus: craziness.coitus,
+								drive: craziness.drive,
+								talked_2x: craziness.talked_2x,
+								location: other_city.to_string(),
+								description: craziness.description.clone(),
 							};
+
 							Night::create_night(night).unwrap();
 						};
 					}
