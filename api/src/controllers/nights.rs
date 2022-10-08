@@ -94,7 +94,7 @@ pub async fn get_one_night(
 			resp.msg = "Found".to_string();
 			resp.data = Some(night);
 		},
-		Err(err) => {
+		Err(err) =>
 			if let diesel::result::Error::NotFound = err {
 				resp.msg = format!("Night with id: {} not found ", item_id);
 				resp.data = None;
@@ -103,8 +103,7 @@ pub async fn get_one_night(
 				resp.msg = err.to_string();
 				resp.data = None;
 				code = StatusCode::NOT_FOUND;
-			}
-		},
+			},
 	}
 
 	(code, Json(resp))
@@ -124,7 +123,7 @@ pub async fn delete_night(
 	let mut code = StatusCode::OK;
 
 	match Night::delete_night(&mut state.db_connection.get().unwrap(), item_id) {
-		Ok(count) => {
+		Ok(count) =>
 			if count.eq(&1) {
 				resp.msg = format!("Deleted Night with id: {}", item_id);
 				resp.data = Some(count);
@@ -132,8 +131,7 @@ pub async fn delete_night(
 				resp.msg = format!("Night with id: {} not found ", item_id);
 				resp.data = None;
 				code = StatusCode::NOT_FOUND;
-			}
-		},
+			},
 		Err(err) => {
 			resp.msg = err.to_string();
 			resp.data = None;
@@ -159,7 +157,7 @@ pub async fn edit_night(
 	let mut code = StatusCode::OK;
 
 	match Night::edit_night(&mut state.db_connection.get().unwrap(), item_id, payload) {
-		Ok(count) => {
+		Ok(count) =>
 			if count.eq(&1) {
 				resp.msg = format!("Updated Night with id: {}", item_id);
 				resp.data = Some(count);
@@ -167,8 +165,7 @@ pub async fn edit_night(
 				resp.msg = format!("Night with id: {} not found ", item_id);
 				resp.data = None;
 				code = StatusCode::NOT_FOUND;
-			}
-		},
+			},
 		Err(err) => {
 			resp.msg = err.to_string();
 			resp.data = None;
