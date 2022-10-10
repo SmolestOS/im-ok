@@ -16,7 +16,7 @@ impl User {
 			.send_json(item)
 	}
 	pub fn login(item: User) -> std::result::Result<ureq::Response, ureq::Error> {
-		ureq::get("http://localhost:3000/users/login")
+		ureq::post("http://localhost:3000/users/login")
 			.set("Content-Type", "application/json")
 			.send_json(item)
 	}

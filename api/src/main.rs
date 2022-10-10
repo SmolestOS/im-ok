@@ -40,7 +40,7 @@ async fn main() {
 
 	let users_routes = Router::new()
 		.route("/register", post(register_user))
-		.route("/login", get(login_user));
+		.route("/login", post(login_user));
 
 	let night_routes = Router::new()
 		.route("/", get(get_all_nights))
