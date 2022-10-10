@@ -18,7 +18,7 @@ use diesel::{
 	PgConnection,
 };
 use std::net::SocketAddr;
-use tower_http::add_extension::AddExtensionLayer;
+use tower_http::{add_extension::AddExtensionLayer, trace::TraceLayer};
 
 #[derive(Clone)]
 pub struct State {
@@ -54,6 +54,7 @@ async fn main() {
 		// the same endpoint - @charmitro
 		.nest("/users", users_routes)
 		.nest("/nights", night_routes)
+		.layer(TraceLayer::new_for_http())
 		.layer(AddExtensionLayer::new(State::new(database)));
 
 	let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
