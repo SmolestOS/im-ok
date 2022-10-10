@@ -1,21 +1,19 @@
-use crate::{
-	models::night::{Night, NightJSONRequest},
-	State,
+use api_types::nights::{
+	self,
+	model::{Night, NightJSONRequest},
 };
 use axum::{extract::Path, http::StatusCode, Extension, Json};
+use axum_macros::debug_handler;
 use mongodb::bson::Bson;
 
-#[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct CreateResponse {
-	msg: String,
-	data: Option<Bson>,
-}
+use crate::State;
 
+#[debug_handler]
 pub async fn create_night(
 	Json(payload): Json<NightJSONRequest>,
 	Extension(state): Extension<State>,
-) -> (StatusCode, Json<CreateResponse>) {
-	let mut resp = CreateResponse::default();
+) -> (StatusCode, Json<nights::response::CreateResponse>) {
+	let mut resp = nights::response::CreateResponse::default();
 	let mut code = StatusCode::OK;
 
 	tracing::info!("{:?}", payload);
@@ -35,16 +33,10 @@ pub async fn create_night(
 	(code, Json(resp))
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct ResponseNights {
-	msg: String,
-	data: Option<Vec<Night>>,
-}
-
 pub async fn get_all_nights(
 	Extension(state): Extension<State>,
-) -> (StatusCode, Json<ResponseNights>) {
-	let mut resp = ResponseNights::default();
+) -> (StatusCode, Json<nights::response::ResponseMany>) {
+	let mut resp = nights::response::ResponseMany::default();
 	let mut code = StatusCode::OK;
 
 	match Night::get_all_nights(&mut state.db_connection.get().unwrap()) {
@@ -76,17 +68,11 @@ pub async fn get_all_nights(
 	(code, Json(resp))
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct ResponseNight {
-	msg: String,
-	data: Option<Night>,
-}
-
 pub async fn get_one_night(
 	Path(item_id): Path<i32>,
 	Extension(state): Extension<State>,
-) -> (StatusCode, Json<ResponseNight>) {
-	let mut resp = ResponseNight::default();
+) -> (StatusCode, Json<nights::response::ResponseOne>) {
+	let mut resp = nights::response::ResponseOne::default();
 	let mut code = StatusCode::OK;
 
 	match Night::get_night(&mut state.db_connection.get().unwrap(), item_id) {
@@ -109,17 +95,11 @@ pub async fn get_one_night(
 	(code, Json(resp))
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct DeleteResponse {
-	msg: String,
-	data: Option<usize>,
-}
-
 pub async fn delete_night(
 	Path(item_id): Path<i32>,
 	Extension(state): Extension<State>,
-) -> (StatusCode, Json<DeleteResponse>) {
-	let mut resp = DeleteResponse::default();
+) -> (StatusCode, Json<nights::response::DeleteResponse>) {
+	let mut resp = nights::response::DeleteResponse::default();
 	let mut code = StatusCode::OK;
 
 	match Night::delete_night(&mut state.db_connection.get().unwrap(), item_id) {
@@ -142,18 +122,12 @@ pub async fn delete_night(
 	(code, Json(resp))
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct EditResponse {
-	msg: String,
-	data: Option<usize>,
-}
-
 pub async fn edit_night(
 	Path(item_id): Path<i32>,
 	Json(payload): Json<NightJSONRequest>,
 	Extension(state): Extension<State>,
-) -> (StatusCode, Json<EditResponse>) {
-	let mut resp = EditResponse::default();
+) -> (StatusCode, Json<nights::response::EditResponse>) {
+	let mut resp = nights::response::EditResponse::default();
 	let mut code = StatusCode::OK;
 
 	match Night::edit_night(&mut state.db_connection.get().unwrap(), item_id, payload) {

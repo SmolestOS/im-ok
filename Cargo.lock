@@ -85,7 +85,9 @@ dependencies = [
 name = "api"
 version = "0.1.0"
 dependencies = [
+ "api-types",
  "axum",
+ "axum-macros",
  "chrono",
  "diesel",
  "diesel-derive-enum",
@@ -98,6 +100,18 @@ dependencies = [
  "tower-http 0.2.5",
  "tracing",
  "tracing-subscriber",
+]
+
+[[package]]
+name = "api-types"
+version = "0.1.0"
+dependencies = [
+ "bson",
+ "chrono",
+ "diesel",
+ "diesel-derive-enum",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -211,6 +225,18 @@ dependencies = [
  "mime",
  "tower-layer",
  "tower-service",
+]
+
+[[package]]
+name = "axum-macros"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6293dae2ec708e679da6736e857cf8532886ef258e92930f38279c12641628b8"
+dependencies = [
+ "heck",
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -1442,6 +1468,7 @@ dependencies = [
 name = "im_ok"
 version = "0.1.0"
 dependencies = [
+ "api-types",
  "bson",
  "chrono",
  "console_error_panic_hook",

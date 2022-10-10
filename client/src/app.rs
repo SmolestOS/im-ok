@@ -1,9 +1,11 @@
 use crate::{
-	models::{
-		night::{Drunkness, Night, NightJSONRequest},
-		user,
-	},
+	models::user,
+	requests::nights::{create_night, delete_night, edit_night, get_all_nights},
 	types::AppState,
+};
+use api_types::nights::{
+	self,
+	model::{Drunkness, Night, NightJSONRequest},
 };
 use bson::doc;
 use chrono::Datelike;
@@ -28,9 +30,9 @@ pub struct ImOk {
 impl Default for ImOk {
 	fn default() -> Self {
 		let mut night_entries = Vec::<Night>::new();
-		for i in Night::get_all_nights()
+		for i in get_all_nights()
 			.unwrap()
-			.into_json::<crate::types::ResponseNights>()
+			.into_json::<nights::response::ResponseMany>()
 			.unwrap()
 			.data
 			.unwrap()
@@ -55,9 +57,9 @@ impl ImOk {
 	pub fn new_with_state(state: AppState) -> Self {
 		println!("peos\n!");
 		let mut night_entries = Vec::<Night>::new();
-		for i in Night::get_all_nights()
+		for i in get_all_nights()
 			.unwrap()
-			.into_json::<crate::types::ResponseNights>()
+			.into_json::<nights::response::ResponseMany>()
 			.unwrap()
 			.data
 			.unwrap()
@@ -112,9 +114,9 @@ impl ImOk {
 	/// Helper function for updating the `night_entries`
 	pub fn refresh(night_entries: &mut Vec<Night>) {
 		night_entries.clear();
-		for i in Night::get_all_nights()
+		for i in get_all_nights()
 			.unwrap()
-			.into_json::<crate::types::ResponseNights>()
+			.into_json::<nights::response::ResponseMany>()
 			.unwrap()
 			.data
 			.unwrap()
@@ -197,7 +199,7 @@ impl eframe::App for ImOk {
 								ui.close_menu();
 							}
 							if ui.button("Delete").clicked() {
-								Night::delete_night(i.id).unwrap();
+								delete_night(i.id).unwrap();
 								ui.close_menu();
 							}
 						});
@@ -384,13 +386,13 @@ impl eframe::App for ImOk {
 						// `craziness.location` with the other city
 						// or else the location on the database will be "Other". - @charmitro
 						if other_city.is_empty() {
-							Night::edit_night(selected_night.as_ref().unwrap().clone()).unwrap();
+							edit_night(selected_night.as_ref().unwrap().clone()).unwrap();
 						} else {
 							let night = Night {
 								location: other_city.to_string(),
 								..selected_night.as_ref().unwrap().clone()
 							};
-							Night::edit_night(night).unwrap();
+							edit_night(night).unwrap();
 						};
 					}
 				});
@@ -525,7 +527,7 @@ impl eframe::App for ImOk {
 								location: craziness.location.clone(),
 								description: craziness.description.clone(),
 							};
-							Night::create_night(night).unwrap();
+							create_night(night).unwrap();
 						} else {
 							let night = NightJSONRequest {
 								user_id: craziness.user_id,
@@ -537,7 +539,7 @@ impl eframe::App for ImOk {
 								description: craziness.description.clone(),
 							};
 
-							Night::create_night(night).unwrap();
+							create_night(night).unwrap();
 						};
 					}
 				});

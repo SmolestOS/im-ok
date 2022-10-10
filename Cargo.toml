@@ -1,7 +1,8 @@
 [workspace]
 members = [
-    "client",
-    "api",
+	"api-types",
+	"client",
+	"api",
 ]
 
 [profile.release]
