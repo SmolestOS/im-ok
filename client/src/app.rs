@@ -1,7 +1,6 @@
 use crate::{
-	datepicker::DatePicker,
 	models::{
-		night::{Drunkness, NewNightDB, Night, NightJSONRequest},
+		night::{Drunkness, Night, NightJSONRequest},
 		user,
 	},
 	types::AppState,
@@ -237,6 +236,25 @@ impl eframe::App for ImOk {
 						ui.add_space(20.0);
 						if ui.add(egui::Button::new("Login")).clicked() {
 							// login API call
+							let user = user::User {
+								id: None,
+								username: username.to_string(),
+								password: password.to_string(),
+							};
+							match user::User::login(user) {
+								Ok(resp) => {
+									println!("{:?}", resp);
+									eframe::set_value::<String>(
+										_frame.storage_mut().unwrap(),
+										"TOKEN",
+										&"kavlaki".to_string(),
+									);
+									appstate.set_app_state(AppState::Submit)
+								},
+								Err(err) => {
+									println!("{:?}", err);
+								},
+							}
 						}
 						ui.add_space(10.0);
 						if ui.add(egui::Button::new("Register")).clicked() {

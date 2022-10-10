@@ -37,6 +37,7 @@ where
 	Tz::Offset: Display,
 {
 	/// Create new date picker with unique id and mutable reference to date.
+	#[allow(dead_code)]
 	pub fn new<T: Hash>(id: T, date: &'a mut DateTime<Tz>) -> Self {
 		Self {
 			id: Id::new(id),
