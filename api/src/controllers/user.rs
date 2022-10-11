@@ -1,6 +1,6 @@
 use api_types::users::{
-    self,
-    model::{User, UserJSONRequest},
+	self,
+	model::{User, UserJSONRequest},
 };
 
 use crate::State;
@@ -37,7 +37,6 @@ pub async fn register_user(
 
 	(code, Json(resp))
 }
-
 
 pub async fn login_user(
 	Json(payload): Json<UserJSONRequest>,
