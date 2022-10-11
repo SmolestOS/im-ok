@@ -1,6 +1,5 @@
 mod controllers;
 mod db;
-mod models;
 mod schema;
 
 use crate::controllers::{

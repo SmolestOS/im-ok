@@ -1,21 +1,17 @@
-use crate::{
-	models::user::{User, UserJSONRequest},
-	State,
+use api_types::users::{
+    self,
+    model::{User, UserJSONRequest},
 };
+
+use crate::State;
 use axum::{http::StatusCode, Extension, Json};
 use mongodb::bson::Bson;
-
-#[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct CreateResponse {
-	msg: String,
-	data: Option<Bson>,
-}
 
 pub async fn register_user(
 	Json(payload): Json<UserJSONRequest>,
 	Extension(state): Extension<State>,
-) -> (StatusCode, Json<CreateResponse>) {
-	let mut resp = CreateResponse::default();
+) -> (StatusCode, Json<users::response::CreateResponse>) {
+	let mut resp = users::response::CreateResponse::default();
 	let mut code = StatusCode::OK;
 
 	match User::create_user(
@@ -42,17 +38,12 @@ pub async fn register_user(
 	(code, Json(resp))
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct LoginResponse {
-	msg: String,
-	data: Option<User>,
-}
 
 pub async fn login_user(
 	Json(payload): Json<UserJSONRequest>,
 	Extension(state): Extension<State>,
-) -> (StatusCode, Json<LoginResponse>) {
-	let mut resp = LoginResponse::default();
+) -> (StatusCode, Json<users::response::LoginResponse>) {
+	let mut resp = users::response::LoginResponse::default();
 	let mut code = StatusCode::OK;
 
 	match User::get_user(&mut state.db_connection.get().unwrap(), payload) {
