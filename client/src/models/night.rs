@@ -16,6 +16,11 @@ pub fn edit_night(night: Night) -> std::result::Result<ureq::Response, ureq::Err
 		.send_json(ureq::json!(night))
 }
 
+#[allow(dead_code)]
 pub fn get_all_nights() -> std::result::Result<ureq::Response, ureq::Error> {
 	ureq::get("http://localhost:3000/nights").call()
+}
+
+pub fn get_all_nights_with_user() -> std::result::Result<ureq::Response, ureq::Error> {
+	ureq::get("http://localhost:3000/nights/with_users").call()
 }

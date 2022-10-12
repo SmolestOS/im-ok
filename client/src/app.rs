@@ -1,11 +1,13 @@
 use crate::{
 	models::{
-		night::{create_night, delete_night, edit_night, get_all_nights},
+		night::{create_night, delete_night, edit_night, get_all_nights_with_user},
 		user,
 	},
 	types::AppState,
 };
-use api::models::night::{Drunkness, Night, NightJSONRequest};
+use api::models::night::{
+	responses::ResponseNightsWithUser, Drunkness, Night, NightJSONRequest, NightWithUser,
+};
 use bson::doc;
 use chrono::Datelike;
 
@@ -18,8 +20,8 @@ pub struct ImOk {
 	#[serde(skip)]
 	night: Night,
 	other_city: String,
-	night_entries: Vec<Night>,
-	selected_night: Option<Night>,
+	night_entries: Vec<NightWithUser>,
+	selected_night: Option<NightWithUser>,
 	appstate: AppState,
 
 	username: String,
@@ -28,16 +30,16 @@ pub struct ImOk {
 
 impl Default for ImOk {
 	fn default() -> Self {
-		let mut night_entries = Vec::<Night>::new();
-		for i in get_all_nights()
+		let mut night_entries = Vec::<NightWithUser>::new();
+		for i in get_all_nights_with_user()
 			.unwrap()
-			.into_json::<crate::types::ResponseNights>()
+			.into_json::<ResponseNightsWithUser>()
 			.unwrap()
 			.data
 			.unwrap()
 			.iter()
 		{
-			night_entries.push(i.clone());
+			night_entries.push(i.clone())
 		}
 
 		Self {
@@ -55,10 +57,10 @@ impl Default for ImOk {
 impl ImOk {
 	pub fn new_with_state(state: AppState) -> Self {
 		println!("peos\n!");
-		let mut night_entries = Vec::<Night>::new();
-		for i in get_all_nights()
+		let mut night_entries = Vec::<NightWithUser>::new();
+		for i in get_all_nights_with_user()
 			.unwrap()
-			.into_json::<crate::types::ResponseNights>()
+			.into_json::<ResponseNightsWithUser>()
 			.unwrap()
 			.data
 			.unwrap()
@@ -111,11 +113,11 @@ impl ImOk {
 	}
 
 	/// Helper function for updating the `night_entries`
-	pub fn refresh(night_entries: &mut Vec<Night>) {
+	pub fn refresh(night_entries: &mut Vec<NightWithUser>) {
 		night_entries.clear();
-		for i in get_all_nights()
+		for i in get_all_nights_with_user()
 			.unwrap()
-			.into_json::<crate::types::ResponseNights>()
+			.into_json::<ResponseNightsWithUser>()
 			.unwrap()
 			.data
 			.unwrap()
@@ -382,11 +384,31 @@ impl eframe::App for ImOk {
 						// `craziness.location` with the other city
 						// or else the location on the database will be "Other". - @charmitro
 						if other_city.is_empty() {
-							edit_night(selected_night.as_ref().unwrap().clone()).unwrap();
-						} else {
+							let _selected_night = selected_night.as_ref().unwrap();
 							let night = Night {
+								id: _selected_night.id,
+								user_id: _selected_night.user_id,
+								drunkness: _selected_night.drunkness,
+								coitus: _selected_night.coitus,
+								drive: _selected_night.drive,
+								talked_2x: _selected_night.talked_2x,
+								location: _selected_night.location.clone(),
+								description: _selected_night.description.clone(),
+								created_at: _selected_night.created_at,
+							};
+							edit_night(night).unwrap();
+						} else {
+							let _selected_night = selected_night.as_ref().unwrap();
+							let night = Night {
+								id: _selected_night.id,
+								user_id: _selected_night.user_id,
+								drunkness: _selected_night.drunkness,
+								coitus: _selected_night.coitus,
+								drive: _selected_night.drive,
+								talked_2x: _selected_night.talked_2x,
 								location: other_city.to_string(),
-								..selected_night.as_ref().unwrap().clone()
+								description: _selected_night.description.clone(),
+								created_at: _selected_night.created_at,
 							};
 							edit_night(night).unwrap();
 						};
@@ -399,7 +421,7 @@ impl eframe::App for ImOk {
 			AppState::Viewing => {
 				egui::CentralPanel::default().show(ctx, |ui| {
 					// The central panel the region left after adding TopPanel's and SidePanel's
-					ui.heading(format!("{:?}", selected_night.as_ref().unwrap().user_id));
+					ui.heading(format!("{:?}", selected_night.as_ref().unwrap().username));
 
 					ui.separator();
 
