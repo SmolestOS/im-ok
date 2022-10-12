@@ -176,7 +176,7 @@ impl eframe::App for ImOk {
 		egui::SidePanel::left("side_panel").min_width(120.0).show(ctx, |ui| {
 			egui::ScrollArea::both().show(ui, |ui| {
 				egui::CollapsingHeader::new("Nights").show(ui, |ui| {
-					for i in night_entries.iter() {
+					for i in night_entries.clone().iter() {
 						let response = ui.add(egui::SelectableLabel::new(
 							false,
 							format!(
@@ -189,35 +189,34 @@ impl eframe::App for ImOk {
 						));
 						if response.clicked() {
 							*selected_night = Some(i.clone());
-							*appstate = AppState::Viewing;
+							appstate.set_app_state(AppState::Viewing);
 						}
 						response.context_menu(|ui| {
 							if ui.button("Edit").clicked() {
-								*appstate = AppState::Editing;
+								appstate.set_app_state(AppState::Editing);
 								*selected_night = Some(i.clone());
 								ui.close_menu();
 							}
 							if ui.button("Delete").clicked() {
 								delete_night(i.id).unwrap();
 								ui.close_menu();
+								Self::refresh(night_entries);
 							}
 						});
 					}
 				})
 			});
-
-			// egui::CollapsingHeader::new("Gkasma").show(ui, |ui| {
-			// 	if ui.add(egui::Button::new("Refresh")).clicked() {
-			// 		Self::refresh(night_entries);
-			// 	}
-			// });
+			if ui.add(egui::Button::new("Refresh")).clicked() {
+				Self::refresh(night_entries);
+			}
 		});
+
 		egui::TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
 			if *appstate == AppState::Viewing && ui.button("Exit viewing mode").clicked() {
-				*appstate = AppState::Submit;
+				appstate.set_app_state(AppState::Submit)
 			}
 			if *appstate == AppState::Editing && ui.button("Exit edit mode").clicked() {
-				*appstate = AppState::Submit;
+				appstate.set_app_state(AppState::Submit)
 			}
 		});
 
@@ -287,7 +286,6 @@ impl eframe::App for ImOk {
 			AppState::Editing => {
 				egui::CentralPanel::default().show(ctx, |ui| {
 					// The central panel the region left after adding TopPanel's and SidePanel's
-					ui.heading("Users");
 					// egui::ComboBox::from_id_source("my-box")
 					// 	.selected_text(format!("{:?}", selected_night.as_ref().unwrap().user))
 					// 	.show_ui(ui, |ui| {
@@ -302,7 +300,6 @@ impl eframe::App for ImOk {
 					// 			"Gkasma",
 					// 		);
 					// 	});
-					ui.separator();
 					ui.heading("Drunk levels");
 					egui::ComboBox::from_id_source("my-box2")
 						.selected_text(format!("{:?}", selected_night.as_mut().unwrap().drunkness))
@@ -393,6 +390,8 @@ impl eframe::App for ImOk {
 							};
 							edit_night(night).unwrap();
 						};
+						appstate.set_app_state(AppState::Viewing);
+						Self::refresh(night_entries);
 					}
 				});
 			},
