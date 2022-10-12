@@ -57,3 +57,17 @@ pub struct NewNightDB {
 	pub description: String,
 	pub created_at: NaiveDate,
 }
+
+#[derive(Queryable, Serialize, Deserialize, Debug, Clone, Default)]
+pub struct NightWithUser {
+	pub id: i32,
+	pub user_id: i32,
+	pub username: String,
+	pub drunkness: Drunkness,
+	pub coitus: bool,
+	pub drive: bool,
+	pub talked_2x: bool,
+	pub location: String,
+	pub description: String,
+	pub created_at: NaiveDate,
+}

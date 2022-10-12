@@ -1,4 +1,4 @@
-use crate::models::night::{NewNightDB, Night, NightJSONRequest};
+use crate::models::night::{NewNightDB, Night, NightJSONRequest, NightWithUser};
 use chrono::Local;
 use diesel::prelude::*;
 
@@ -22,6 +22,27 @@ pub fn get_all_nights(conn: &mut PgConnection) -> Result<Vec<Night>, diesel::res
 	use crate::schema::nights::dsl;
 
 	dsl::nights.load::<Night>(conn)
+}
+
+pub fn get_all_nights_with_user(
+	conn: &mut PgConnection,
+) -> Result<Vec<NightWithUser>, diesel::result::Error> {
+	use crate::schema::{nights, users};
+	nights::dsl::nights
+		.inner_join(users::table.on(nights::dsl::user_id.eq(users::dsl::id)))
+		.select((
+			nights::dsl::id,
+			nights::dsl::user_id,
+			users::dsl::username,
+			nights::dsl::drunkness,
+			nights::dsl::coitus,
+			nights::dsl::drive,
+			nights::dsl::talked_2x,
+			nights::dsl::location,
+			nights::dsl::description,
+			nights::dsl::created_at,
+		))
+		.load::<NightWithUser>(conn)
 }
 
 pub fn get_night(conn: &mut PgConnection, item_id: i32) -> Result<Night, diesel::result::Error> {

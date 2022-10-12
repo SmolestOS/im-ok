@@ -1,6 +1,6 @@
 use crate::{
 	db,
-	models::night::{Night, NightJSONRequest},
+	models::night::{Night, NightJSONRequest, NightWithUser},
 	State,
 };
 use axum::{extract::Path, http::StatusCode, Extension, Json};
@@ -49,6 +49,47 @@ pub async fn get_all_nights(
 	let mut code = StatusCode::OK;
 
 	match db::nights::get_all_nights(&mut state.db_connection.get().unwrap()) {
+		Ok(mut index) => {
+			resp.msg = "Created".to_string();
+			index.sort_by(|a, b| a.created_at.cmp(&b.created_at));
+			resp.data = Some(index);
+		},
+		Err(err) => {
+			if let diesel::result::Error::DatabaseError(
+				diesel::result::DatabaseErrorKind::UniqueViolation,
+				_,
+			) = err
+			{
+				resp.msg = "User already exists".to_string();
+				resp.data = None;
+				code = StatusCode::BAD_REQUEST;
+			} else {
+				resp.msg = err.to_string();
+				resp.data = None;
+				code = StatusCode::BAD_REQUEST;
+			}
+		},
+	};
+
+	// resp.msg = "Success".to_string();
+	// v.sort_by(|a, b| a.craziness.date.cmp(&b.craziness.date));
+	// resp.data = Some(v);
+	(code, Json(resp))
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Default)]
+pub struct ResponseNightsWithUser {
+	msg: String,
+	data: Option<Vec<NightWithUser>>,
+}
+
+pub async fn get_all_nights_with_user(
+	Extension(state): Extension<State>,
+) -> (StatusCode, Json<ResponseNightsWithUser>) {
+	let mut resp = ResponseNightsWithUser::default();
+	let mut code = StatusCode::OK;
+
+	match db::nights::get_all_nights_with_user(&mut state.db_connection.get().unwrap()) {
 		Ok(mut index) => {
 			resp.msg = "Created".to_string();
 			index.sort_by(|a, b| a.created_at.cmp(&b.created_at));
