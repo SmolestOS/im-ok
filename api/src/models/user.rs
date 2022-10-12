@@ -23,3 +23,20 @@ pub struct NewUserDB {
 	pub password: String,
 	pub created_on: chrono::NaiveDateTime,
 }
+
+pub mod responses {
+	use super::*;
+	use mongodb::bson::Bson;
+
+	#[derive(serde::Serialize, serde::Deserialize, Default)]
+	pub struct CreateResponse {
+		pub msg: String,
+		pub data: Option<Bson>,
+	}
+
+	#[derive(serde::Serialize, serde::Deserialize, Default)]
+	pub struct LoginResponse {
+		pub msg: String,
+		pub data: Option<User>,
+	}
+}

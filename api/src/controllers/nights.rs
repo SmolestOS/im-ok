@@ -1,16 +1,10 @@
 use crate::{
 	db,
-	models::night::{Night, NightJSONRequest},
+	models::night::{responses::*, NightJSONRequest},
 	State,
 };
 use axum::{extract::Path, http::StatusCode, Extension, Json};
 use mongodb::bson::Bson;
-
-#[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct CreateResponse {
-	msg: String,
-	data: Option<Bson>,
-}
 
 pub async fn create_night(
 	Json(payload): Json<NightJSONRequest>,
@@ -34,12 +28,6 @@ pub async fn create_night(
 	}
 
 	(code, Json(resp))
-}
-
-#[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct ResponseNights {
-	msg: String,
-	data: Option<Vec<Night>>,
 }
 
 pub async fn get_all_nights(
@@ -77,10 +65,39 @@ pub async fn get_all_nights(
 	(code, Json(resp))
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct ResponseNight {
-	msg: String,
-	data: Option<Night>,
+pub async fn get_all_nights_with_user(
+	Extension(state): Extension<State>,
+) -> (StatusCode, Json<ResponseNightsWithUser>) {
+	let mut resp = ResponseNightsWithUser::default();
+	let mut code = StatusCode::OK;
+
+	match db::nights::get_all_nights_with_user(&mut state.db_connection.get().unwrap()) {
+		Ok(mut index) => {
+			resp.msg = "Created".to_string();
+			index.sort_by(|a, b| a.created_at.cmp(&b.created_at));
+			resp.data = Some(index);
+		},
+		Err(err) => {
+			if let diesel::result::Error::DatabaseError(
+				diesel::result::DatabaseErrorKind::UniqueViolation,
+				_,
+			) = err
+			{
+				resp.msg = "User already exists".to_string();
+				resp.data = None;
+				code = StatusCode::BAD_REQUEST;
+			} else {
+				resp.msg = err.to_string();
+				resp.data = None;
+				code = StatusCode::BAD_REQUEST;
+			}
+		},
+	};
+
+	// resp.msg = "Success".to_string();
+	// v.sort_by(|a, b| a.craziness.date.cmp(&b.craziness.date));
+	// resp.data = Some(v);
+	(code, Json(resp))
 }
 
 pub async fn get_one_night(
@@ -110,12 +127,6 @@ pub async fn get_one_night(
 	(code, Json(resp))
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct DeleteResponse {
-	msg: String,
-	data: Option<usize>,
-}
-
 pub async fn delete_night(
 	Path(item_id): Path<i32>,
 	Extension(state): Extension<State>,
@@ -141,12 +152,6 @@ pub async fn delete_night(
 	}
 
 	(code, Json(resp))
-}
-
-#[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct EditResponse {
-	msg: String,
-	data: Option<usize>,
 }
 
 pub async fn edit_night(

@@ -4,7 +4,10 @@ mod models;
 mod schema;
 
 use crate::controllers::{
-	nights::{create_night, delete_night, edit_night, get_all_nights, get_one_night},
+	nights::{
+		create_night, delete_night, edit_night, get_all_nights, get_all_nights_with_user,
+		get_one_night,
+	},
 	user::login_user,
 };
 use axum::{
@@ -44,6 +47,7 @@ async fn main() {
 
 	let night_routes = Router::new()
 		.route("/", get(get_all_nights))
+		.route("/with_users", get(get_all_nights_with_user))
 		.route("/new", post(create_night))
 		.route("/:id", get(get_one_night))
 		.route("/:id", delete(delete_night))
