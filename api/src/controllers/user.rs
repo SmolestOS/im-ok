@@ -1,16 +1,10 @@
 use crate::{
 	db,
-	models::user::{User, UserJSONRequest},
+	models::user::{responses::*, UserJSONRequest},
 	State,
 };
 use axum::{http::StatusCode, Extension, Json};
 use mongodb::bson::Bson;
-
-#[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct CreateResponse {
-	msg: String,
-	data: Option<Bson>,
-}
 
 pub async fn register_user(
 	Json(payload): Json<UserJSONRequest>,
@@ -41,12 +35,6 @@ pub async fn register_user(
 	}
 
 	(code, Json(resp))
-}
-
-#[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct LoginResponse {
-	msg: String,
-	data: Option<User>,
 }
 
 pub async fn login_user(

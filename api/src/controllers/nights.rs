@@ -1,16 +1,10 @@
 use crate::{
 	db,
-	models::night::{Night, NightJSONRequest, NightWithUser},
+	models::night::{responses::*, NightJSONRequest},
 	State,
 };
 use axum::{extract::Path, http::StatusCode, Extension, Json};
 use mongodb::bson::Bson;
-
-#[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct CreateResponse {
-	msg: String,
-	data: Option<Bson>,
-}
 
 pub async fn create_night(
 	Json(payload): Json<NightJSONRequest>,
@@ -34,12 +28,6 @@ pub async fn create_night(
 	}
 
 	(code, Json(resp))
-}
-
-#[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct ResponseNights {
-	msg: String,
-	data: Option<Vec<Night>>,
 }
 
 pub async fn get_all_nights(
@@ -77,12 +65,6 @@ pub async fn get_all_nights(
 	(code, Json(resp))
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct ResponseNightsWithUser {
-	msg: String,
-	data: Option<Vec<NightWithUser>>,
-}
-
 pub async fn get_all_nights_with_user(
 	Extension(state): Extension<State>,
 ) -> (StatusCode, Json<ResponseNightsWithUser>) {
@@ -118,12 +100,6 @@ pub async fn get_all_nights_with_user(
 	(code, Json(resp))
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct ResponseNight {
-	msg: String,
-	data: Option<Night>,
-}
-
 pub async fn get_one_night(
 	Path(item_id): Path<i32>,
 	Extension(state): Extension<State>,
@@ -151,12 +127,6 @@ pub async fn get_one_night(
 	(code, Json(resp))
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct DeleteResponse {
-	msg: String,
-	data: Option<usize>,
-}
-
 pub async fn delete_night(
 	Path(item_id): Path<i32>,
 	Extension(state): Extension<State>,
@@ -182,12 +152,6 @@ pub async fn delete_night(
 	}
 
 	(code, Json(resp))
-}
-
-#[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct EditResponse {
-	msg: String,
-	data: Option<usize>,
 }
 
 pub async fn edit_night(
