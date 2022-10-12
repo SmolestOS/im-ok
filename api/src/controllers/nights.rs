@@ -1,4 +1,5 @@
 use crate::{
+	db,
 	models::night::{Night, NightJSONRequest},
 	State,
 };
@@ -19,7 +20,7 @@ pub async fn create_night(
 	let mut code = StatusCode::OK;
 
 	tracing::info!("{:?}", payload);
-	match Night::create_night(&mut state.db_connection.get().unwrap(), payload) {
+	match db::nights::create_night(&mut state.db_connection.get().unwrap(), payload) {
 		Ok(index) => {
 			resp.msg = "Created".to_string();
 			resp.data = Some(Bson::from(index.to_string()));
@@ -47,7 +48,7 @@ pub async fn get_all_nights(
 	let mut resp = ResponseNights::default();
 	let mut code = StatusCode::OK;
 
-	match Night::get_all_nights(&mut state.db_connection.get().unwrap()) {
+	match db::nights::get_all_nights(&mut state.db_connection.get().unwrap()) {
 		Ok(mut index) => {
 			resp.msg = "Created".to_string();
 			index.sort_by(|a, b| a.created_at.cmp(&b.created_at));
@@ -89,7 +90,7 @@ pub async fn get_one_night(
 	let mut resp = ResponseNight::default();
 	let mut code = StatusCode::OK;
 
-	match Night::get_night(&mut state.db_connection.get().unwrap(), item_id) {
+	match db::nights::get_night(&mut state.db_connection.get().unwrap(), item_id) {
 		Ok(night) => {
 			resp.msg = "Found".to_string();
 			resp.data = Some(night);
@@ -122,7 +123,7 @@ pub async fn delete_night(
 	let mut resp = DeleteResponse::default();
 	let mut code = StatusCode::OK;
 
-	match Night::delete_night(&mut state.db_connection.get().unwrap(), item_id) {
+	match db::nights::delete_night(&mut state.db_connection.get().unwrap(), item_id) {
 		Ok(count) =>
 			if count.eq(&1) {
 				resp.msg = format!("Deleted Night with id: {}", item_id);
@@ -156,7 +157,7 @@ pub async fn edit_night(
 	let mut resp = EditResponse::default();
 	let mut code = StatusCode::OK;
 
-	match Night::edit_night(&mut state.db_connection.get().unwrap(), item_id, payload) {
+	match db::nights::edit_night(&mut state.db_connection.get().unwrap(), item_id, payload) {
 		Ok(count) =>
 			if count.eq(&1) {
 				resp.msg = format!("Updated Night with id: {}", item_id);

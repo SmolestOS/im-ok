@@ -1,4 +1,4 @@
-use super::models::night::Night;
+use api::models::night::Night;
 use bson::{oid::ObjectId, Bson};
 
 #[derive(serde::Serialize, serde::Deserialize, Default)]

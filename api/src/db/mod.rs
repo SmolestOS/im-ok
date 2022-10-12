@@ -1,3 +1,6 @@
+pub mod nights;
+pub mod users;
+
 use diesel::{
 	r2d2::{ConnectionManager, Pool},
 	PgConnection,

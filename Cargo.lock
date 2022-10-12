@@ -1442,6 +1442,7 @@ dependencies = [
 name = "im_ok"
 version = "0.1.0"
 dependencies = [
+ "api",
  "bson",
  "chrono",
  "console_error_panic_hook",

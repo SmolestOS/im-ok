@@ -1,4 +1,5 @@
 use crate::{
+	db,
 	models::user::{User, UserJSONRequest},
 	State,
 };
@@ -18,7 +19,7 @@ pub async fn register_user(
 	let mut resp = CreateResponse::default();
 	let mut code = StatusCode::OK;
 
-	match User::create_user(
+	match db::users::create_user(
 		&mut state.db_connection.get().unwrap(),
 		UserJSONRequest { username: payload.username, password: payload.password },
 	) {
@@ -55,7 +56,7 @@ pub async fn login_user(
 	let mut resp = LoginResponse::default();
 	let mut code = StatusCode::OK;
 
-	match User::get_user(&mut state.db_connection.get().unwrap(), payload) {
+	match db::users::get_user(&mut state.db_connection.get().unwrap(), payload) {
 		Ok(user) => {
 			resp.msg = "Logged in succesfully".to_string();
 			resp.data = Some(user);
