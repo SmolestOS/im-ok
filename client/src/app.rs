@@ -5,8 +5,9 @@ use crate::{
 	},
 	types::AppState,
 };
-use api::models::night::{
-	responses::ResponseNightsWithUser, Drunkness, Night, NightJSONRequest, NightWithUser,
+use api::models::{
+	night::{responses::ResponseNightsWithUser, Drunkness, Night, NightJSONRequest, NightWithUser},
+	user::{responses::LoginResponse, User},
 };
 use bson::doc;
 use chrono::Datelike;
@@ -23,6 +24,7 @@ pub struct ImOk {
 	night_entries: Vec<NightWithUser>,
 	selected_night: Option<NightWithUser>,
 	appstate: AppState,
+	current_user: User,
 
 	username: String,
 	password: String,
@@ -48,6 +50,7 @@ impl Default for ImOk {
 			night_entries: night_entries.clone(),
 			selected_night: None,
 			appstate: AppState::default(),
+			current_user: User::default(),
 			username: String::from("username"),
 			password: String::from("password"),
 		}
@@ -75,6 +78,7 @@ impl ImOk {
 			night_entries: night_entries.clone(),
 			selected_night: None,
 			appstate: state,
+			current_user: User::default(),
 			username: String::from("username"),
 			password: String::from("password"),
 		}
@@ -143,6 +147,7 @@ impl eframe::App for ImOk {
 			night_entries,
 			selected_night,
 			appstate,
+			current_user,
 			username,
 			password,
 		} = self;
@@ -183,7 +188,7 @@ impl eframe::App for ImOk {
 							false,
 							format!(
 								"{} {}/{}/{}",
-								i.created_at.weekday(),
+								i.username,
 								i.created_at.day(),
 								i.created_at.month(),
 								i.created_at.year()
@@ -251,7 +256,9 @@ impl eframe::App for ImOk {
 										"TOKEN",
 										&"kavlaki".to_string(),
 									);
-									appstate.set_app_state(AppState::Submit)
+									appstate.set_app_state(AppState::Submit);
+									*current_user =
+										resp.into_json::<LoginResponse>().unwrap().data.unwrap()
 								},
 								Err(err) => {
 									println!("{:?}", err);
@@ -274,7 +281,7 @@ impl eframe::App for ImOk {
 										"TOKEN",
 										&"kavlaki".to_string(),
 									);
-									appstate.set_app_state(AppState::Submit)
+									println!("GG to register");
 								},
 								Err(err) => {
 									println!("{:?}", err);
@@ -287,21 +294,6 @@ impl eframe::App for ImOk {
 
 			AppState::Editing => {
 				egui::CentralPanel::default().show(ctx, |ui| {
-					// The central panel the region left after adding TopPanel's and SidePanel's
-					// egui::ComboBox::from_id_source("my-box")
-					// 	.selected_text(format!("{:?}", selected_night.as_ref().unwrap().user))
-					// 	.show_ui(ui, |ui| {
-					// 		ui.selectable_value(
-					// 			&mut selected_night.as_mut().unwrap().user,
-					// 			User::Lostsaka,
-					// 			"Lostsaka",
-					// 		);
-					// 		ui.selectable_value(
-					// 			&mut selected_night.as_mut().unwrap().user,
-					// 			User::Gkasma,
-					// 			"Gkasma",
-					// 		);
-					// 	});
 					ui.heading("Drunk levels");
 					egui::ComboBox::from_id_source("my-box2")
 						.selected_text(format!("{:?}", selected_night.as_mut().unwrap().drunkness))
@@ -368,14 +360,8 @@ impl eframe::App for ImOk {
 					ui.checkbox(&mut selected_night.as_mut().unwrap().talked_2x, "Talked_2x");
 
 					ui.separator();
+					ui.heading("Description");
 					ui.text_edit_multiline(&mut selected_night.as_mut().unwrap().description);
-
-					ui.separator();
-					ui.heading("Date");
-					// ui.add(DatePicker::new(
-					// 	"date_picker",
-					// 	&mut selected_night.as_mut().unwrap().created_at.,
-					// ));
 
 					// Update entry to database
 					ui.separator();
@@ -467,26 +453,10 @@ impl eframe::App for ImOk {
 							&mut selected_night.as_ref().unwrap().description.clone(),
 						),
 					);
-
-					ui.separator();
-					ui.heading("Date");
-					// ui.add(DatePicker::new(
-					// 	"date_picker",
-					// 	&mut selected_night.as_ref().unwrap().date.clone(),
-					// ));
 				});
 			},
 			AppState::Submit => {
 				egui::CentralPanel::default().show(ctx, |ui| {
-					// 	// The central panel the region left after adding TopPanel's and SidePanel's
-					// 	ui.heading("Users");
-					// 	egui::ComboBox::from_id_source("my-box")
-					// 		.selected_text(format!("{:?}", craziness.user_id))
-					// 		.show_ui(ui, |ui| {
-					// 			ui.selectable_value(&mut craziness.user_id, User::Lostsaka, "Lostsaka");
-					// 			ui.selectable_value(&mut craziness.user_id, User::Gkasma, "Gkasma");
-					// 		});
-					ui.separator();
 					ui.heading("Drunk levels");
 					egui::ComboBox::from_id_source("my-box2")
 						.selected_text(format!("{:?}", craziness.drunkness))
@@ -525,11 +495,8 @@ impl eframe::App for ImOk {
 					ui.checkbox(&mut craziness.talked_2x, "Talked_2x");
 
 					ui.separator();
+					ui.heading("Description");
 					ui.text_edit_multiline(&mut craziness.description);
-
-					ui.separator();
-					// ui.heading("Date");
-					// ui.add(DatePicker::new("date_picker", &mut craziness.date));
 
 					// Submit entry to database
 					ui.separator();
@@ -539,7 +506,7 @@ impl eframe::App for ImOk {
 						// or else the location on the database will be "Other". - @charmitro
 						if other_city.is_empty() {
 							let night = NightJSONRequest {
-								user_id: craziness.user_id,
+								user_id: current_user.id,
 								drunkness: craziness.drunkness,
 								coitus: craziness.coitus,
 								drive: craziness.drive,
@@ -550,7 +517,7 @@ impl eframe::App for ImOk {
 							create_night(night).unwrap();
 						} else {
 							let night = NightJSONRequest {
-								user_id: craziness.user_id,
+								user_id: current_user.id,
 								drunkness: craziness.drunkness,
 								coitus: craziness.coitus,
 								drive: craziness.drive,
