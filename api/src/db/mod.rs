@@ -1,11 +1,14 @@
-use mongodb::{Client, Database};
+pub mod nights;
+pub mod users;
 
-pub async fn establish_connection() -> Database {
-	let c = Client::with_uri_str(
-		std::env::var("MONGO_URI").expect("MONGO_URI environment variable not set."),
-	)
-	.await
-	.unwrap();
+use diesel::{
+	r2d2::{ConnectionManager, Pool},
+	PgConnection,
+};
 
-	c.database("im_ok")
+pub async fn establish_connection() -> Pool<ConnectionManager<PgConnection>> {
+	let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+
+	let manager = ConnectionManager::<PgConnection>::new(&database_url);
+	Pool::builder().build(manager).expect("Failed to create pool")
 }

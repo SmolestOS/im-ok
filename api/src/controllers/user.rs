@@ -1,4 +1,8 @@
-use crate::{models::user::User, State};
+use crate::{
+	db,
+	models::user::{User, UserJSONRequest},
+	State,
+};
 use axum::{http::StatusCode, Extension, Json};
 use mongodb::bson::Bson;
 
@@ -9,27 +13,34 @@ pub struct CreateResponse {
 }
 
 pub async fn register_user(
-	Json(payload): Json<User>,
+	Json(payload): Json<UserJSONRequest>,
 	Extension(state): Extension<State>,
 ) -> (StatusCode, Json<CreateResponse>) {
 	let mut resp = CreateResponse::default();
-	let db_req = User::create_user(
-		state.db_connection.collection::<User>("users"),
-		User { id: None, username: payload.username, password: payload.password },
-	)
-	.await;
+	let mut code = StatusCode::OK;
 
-	match db_req {
-		Ok(res) => {
-			resp.msg = "Success".to_string();
-			resp.data = Some(res.inserted_id);
-			(StatusCode::OK, Json(resp))
+	match db::users::create_user(
+		&mut state.db_connection.get().unwrap(),
+		UserJSONRequest { username: payload.username, password: payload.password },
+	) {
+		Ok(index) => {
+			resp.msg = "Created".to_string();
+			resp.data = Some(Bson::from(index.to_string()));
 		},
 		Err(err) => {
-			resp.msg = err.to_string();
-			(StatusCode::BAD_REQUEST, Json(resp))
+			if let diesel::result::Error::DatabaseError(
+				diesel::result::DatabaseErrorKind::UniqueViolation,
+				_,
+			) = err
+			{
+				resp.msg = "User already exists".to_string();
+				resp.data = Some(Bson::default());
+				code = StatusCode::BAD_REQUEST;
+			}
 		},
 	}
+
+	(code, Json(resp))
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Default)]
@@ -39,29 +50,28 @@ pub struct LoginResponse {
 }
 
 pub async fn login_user(
-	Json(payload): Json<User>,
+	Json(payload): Json<UserJSONRequest>,
 	Extension(state): Extension<State>,
 ) -> (StatusCode, Json<LoginResponse>) {
 	let mut resp = LoginResponse::default();
-	let db_req = User::get_user(
-		state.db_connection.collection::<User>("users"),
-		User { id: None, username: payload.username, password: payload.password },
-	)
-	.await;
+	let mut code = StatusCode::OK;
 
-	match db_req {
-		Ok(res) =>
-			if let Some(user) = res {
-				resp.data = Some(user);
-				resp.msg = "Success".to_string();
-				(StatusCode::OK, Json(resp))
-			} else {
-				resp.msg = "Not found".to_string();
-				(StatusCode::BAD_REQUEST, Json(resp))
-			},
-		Err(err) => {
-			resp.msg = err.to_string();
-			(StatusCode::BAD_REQUEST, Json(resp))
+	match db::users::get_user(&mut state.db_connection.get().unwrap(), payload) {
+		Ok(user) => {
+			resp.msg = "Logged in succesfully".to_string();
+			resp.data = Some(user);
 		},
+		Err(err) =>
+			if let diesel::result::Error::NotFound = err {
+				resp.msg = "User not found or wrong credentials".to_string();
+				resp.data = None;
+				code = StatusCode::NOT_FOUND;
+			} else {
+				resp.msg = err.to_string();
+				resp.data = None;
+				code = StatusCode::NOT_FOUND;
+			},
 	}
+
+	(code, Json(resp))
 }
