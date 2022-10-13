@@ -528,6 +528,7 @@ impl eframe::App for ImOk {
 
 							create_night(night).unwrap();
 						};
+						Self::refresh(night_entries);
 					}
 				});
 			},
