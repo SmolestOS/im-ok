@@ -39,9 +39,9 @@ pub mod responses {
 		pub msg: String,
 		pub data: Option<User>,
 	}
-    #[derive(serde::Serialize, serde::Deserialize, Default)]
-    pub struct ResponseUsers{
-        pub msg: String,
-        pub data: Option<Vec<User>>,
-    }
+	#[derive(serde::Serialize, serde::Deserialize, Default)]
+	pub struct ResponseUsers {
+		pub msg: String,
+		pub data: Option<Vec<User>>,
+	}
 }

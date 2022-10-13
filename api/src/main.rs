@@ -8,9 +8,7 @@ use crate::controllers::{
 		create_night, delete_night, edit_night, get_all_nights, get_all_nights_with_user,
 		get_one_night,
 	},
-    user::{
-        login_user, register_user, get_all_users
-    }
+	user::{get_all_users, login_user, register_user},
 };
 use axum::{
 	routing::{delete, get, patch, post},
@@ -37,15 +35,15 @@ impl State {
 
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::fmt::init();
-    dotenvy::dotenv().ok();
+	tracing_subscriber::fmt::init();
+	dotenvy::dotenv().ok();
 
-    let database = establish_connection().await;
+	let database = establish_connection().await;
 
-    let users_routes = Router::new()
-	.route("/register", post(register_user))
-	.route("/login", post(login_user))
-        .route("/", get(get_all_users));
+	let users_routes = Router::new()
+		.route("/register", post(register_user))
+		.route("/login", post(login_user))
+		.route("/", get(get_all_users));
 
 	let night_routes = Router::new()
 		.route("/", get(get_all_nights))

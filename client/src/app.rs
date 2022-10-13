@@ -7,7 +7,10 @@ use crate::{
 };
 use api::models::{
 	night::{responses::ResponseNightsWithUser, Drunkness, Night, NightJSONRequest, NightWithUser},
-    user::{responses::{LoginResponse,ResponseUsers}, User},
+	user::{
+		responses::{LoginResponse, ResponseUsers},
+		User,
+	},
 };
 use bson::doc;
 use chrono::Datelike;
@@ -21,8 +24,8 @@ pub struct ImOk {
 	#[serde(skip)]
 	night: Night,
 	other_city: String,
-    night_entries: Vec<NightWithUser>,
-    user_entries: Vec<User>,
+	night_entries: Vec<NightWithUser>,
+	user_entries: Vec<User>,
 	selected_night: Option<NightWithUser>,
 	appstate: AppState,
 	current_user: User,
@@ -44,16 +47,23 @@ impl Default for ImOk {
 		{
 			night_entries.push(i.clone())
 		}
-            let mut user_entries = Vec::<User>::new();
-            for i in user::User::get_all_users().unwrap().into_json::<ResponseUsers>().unwrap().data.unwrap().iter() {
-                user_entries.push(i.clone())
-            }
+		let mut user_entries = Vec::<User>::new();
+		for i in user::User::get_all_users()
+			.unwrap()
+			.into_json::<ResponseUsers>()
+			.unwrap()
+			.data
+			.unwrap()
+			.iter()
+		{
+			user_entries.push(i.clone())
+		}
 
 		Self {
 			night: Night::default(),
 			other_city: String::new(),
-		    night_entries: night_entries.clone(),
-                    user_entries: user_entries.clone(),
+			night_entries: night_entries.clone(),
+			user_entries: user_entries.clone(),
 			selected_night: None,
 			appstate: AppState::default(),
 			current_user: User::default(),
@@ -77,16 +87,23 @@ impl ImOk {
 		{
 			night_entries.push(i.clone());
 		}
-            let mut user_entries = Vec::<User>::new();
-            for i in user::User::get_all_users().unwrap().into_json::<ResponseUsers>().unwrap().data.unwrap().iter() {
-                user_entries.push(i.clone())
-            }
+		let mut user_entries = Vec::<User>::new();
+		for i in user::User::get_all_users()
+			.unwrap()
+			.into_json::<ResponseUsers>()
+			.unwrap()
+			.data
+			.unwrap()
+			.iter()
+		{
+			user_entries.push(i.clone())
+		}
 
 		Self {
 			night: Night::default(),
 			other_city: String::new(),
-		    night_entries: night_entries.clone(),
-                    user_entries: user_entries.clone(),
+			night_entries: night_entries.clone(),
+			user_entries: user_entries.clone(),
 			selected_night: None,
 			appstate: state,
 			current_user: User::default(),
@@ -140,18 +157,17 @@ impl ImOk {
 		{
 			night_entries.push(i.clone());
 		}
-            user_entries.clear();
-            for i in user::User::get_all_users()
-		.unwrap()
-		.into_json::<ResponseUsers>()
-		.unwrap()
-		.data
-		.unwrap()
-		.iter()
-	    {
-		user_entries.push(i.clone());
-	    }
-
+		user_entries.clear();
+		for i in user::User::get_all_users()
+			.unwrap()
+			.into_json::<ResponseUsers>()
+			.unwrap()
+			.data
+			.unwrap()
+			.iter()
+		{
+			user_entries.push(i.clone());
+		}
 	}
 }
 
@@ -167,8 +183,8 @@ impl eframe::App for ImOk {
 		let Self {
 			night: craziness,
 			other_city,
-		    night_entries,
-                    user_entries,
+			night_entries,
+			user_entries,
 			selected_night,
 			appstate,
 			current_user,
@@ -204,46 +220,46 @@ impl eframe::App for ImOk {
 			});
 		});
 
-	    egui::SidePanel::left("side_panel").min_width(120.0).show(ctx, |ui| {
-		egui::ScrollArea::both().show(ui, |ui| {
-                    for j in user_entries.clone().iter() {
-			egui::CollapsingHeader::new(j.username.to_string()).show(ui, |ui| {
-			    for i in night_entries.clone().iter() {
-                                if i.username == j.username {
-				    let response = ui.add(egui::SelectableLabel::new(
-				        false,
-				        format!(
-					    "{} {}/{}/{}",
-					    i.username,
-					    i.created_at.day(),
-					    i.created_at.month(),
-					    i.created_at.year()
-				        ),
-				    ));
-				    if response.clicked() {
-				        *selected_night = Some(i.clone());
-				        appstate.set_app_state(AppState::Viewing);
-				    }
-				    response.context_menu(|ui| {
-				        if ui.button("Edit").clicked() {
-					    appstate.set_app_state(AppState::Editing);
-					    *selected_night = Some(i.clone());
-					    ui.close_menu();
-				        }
-				        if ui.button("Delete").clicked() {
-					    delete_night(i.id).unwrap();
-					    ui.close_menu();
-					    Self::refresh(night_entries, user_entries);
-				        }
-				    });
-                                }
-			    }
+		egui::SidePanel::left("side_panel").min_width(120.0).show(ctx, |ui| {
+			egui::ScrollArea::both().show(ui, |ui| {
+				for j in user_entries.clone().iter() {
+					egui::CollapsingHeader::new(j.username.to_string()).show(ui, |ui| {
+						for i in night_entries.clone().iter() {
+							if i.username == j.username {
+								let response = ui.add(egui::SelectableLabel::new(
+									false,
+									format!(
+										"{} {}/{}/{}",
+										i.username,
+										i.created_at.day(),
+										i.created_at.month(),
+										i.created_at.year()
+									),
+								));
+								if response.clicked() {
+									*selected_night = Some(i.clone());
+									appstate.set_app_state(AppState::Viewing);
+								}
+								response.context_menu(|ui| {
+									if ui.button("Edit").clicked() {
+										appstate.set_app_state(AppState::Editing);
+										*selected_night = Some(i.clone());
+										ui.close_menu();
+									}
+									if ui.button("Delete").clicked() {
+										delete_night(i.id).unwrap();
+										ui.close_menu();
+										Self::refresh(night_entries, user_entries);
+									}
+								});
+							}
+						}
+					});
+				}
 			});
-                    }
-		});
-			                      if ui.add(egui::Button::new("Refresh")).clicked() {
-				                  Self::refresh(night_entries,user_entries);
-			                      }
+			if ui.add(egui::Button::new("Refresh")).clicked() {
+				Self::refresh(night_entries, user_entries);
+			}
 		});
 
 		egui::TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {

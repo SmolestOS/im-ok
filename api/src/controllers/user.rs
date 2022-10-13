@@ -65,32 +65,32 @@ pub async fn login_user(
 }
 
 pub async fn get_all_users(
-    Extension(state): Extension<State>,
+	Extension(state): Extension<State>,
 ) -> (StatusCode, Json<ResponseUsers>) {
-    let mut resp = ResponseUsers::default();
-    let mut code = StatusCode::OK;
+	let mut resp = ResponseUsers::default();
+	let mut code = StatusCode::OK;
 
-    match db::users::get_all_users(&mut state.db_connection.get().unwrap()) {
-	Ok(mut index) => {
-	    resp.msg = "Created".to_string();
-	    index.sort_by(|a, b| a.created_on.cmp(&b.created_on));
-	    resp.data = Some(index);
-	},
-	Err(err) => {
-	    if let diesel::result::Error::DatabaseError(
-		diesel::result::DatabaseErrorKind::UniqueViolation,
-		_,
-	    ) = err
-	    {
-		resp.msg = "User already exists".to_string();
-		resp.data = None;
-		code = StatusCode::BAD_REQUEST;
-	    } else {
-		resp.msg = err.to_string();
-		resp.data = None;
-		code = StatusCode::BAD_REQUEST;
-	    }
-	},
-    };
-    (code, Json(resp))
+	match db::users::get_all_users(&mut state.db_connection.get().unwrap()) {
+		Ok(mut index) => {
+			resp.msg = "Created".to_string();
+			index.sort_by(|a, b| a.created_on.cmp(&b.created_on));
+			resp.data = Some(index);
+		},
+		Err(err) => {
+			if let diesel::result::Error::DatabaseError(
+				diesel::result::DatabaseErrorKind::UniqueViolation,
+				_,
+			) = err
+			{
+				resp.msg = "User already exists".to_string();
+				resp.data = None;
+				code = StatusCode::BAD_REQUEST;
+			} else {
+				resp.msg = err.to_string();
+				resp.data = None;
+				code = StatusCode::BAD_REQUEST;
+			}
+		},
+	};
+	(code, Json(resp))
 }
