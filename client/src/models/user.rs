@@ -20,4 +20,7 @@ impl User {
 			.set("Content-Type", "application/json")
 			.send_json(item)
 	}
+    pub fn get_all_users() -> std::result::Result<ureq::Response, ureq::Error> {
+        ureq::get("http://localhost:3000/users").call()
+    }
 }

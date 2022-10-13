@@ -26,3 +26,8 @@ pub fn get_user(
 		.filter(dsl::username.eq(user.username).and(dsl::password.eq(user.password)))
 		.first::<User>(conn)
 }
+pub fn get_all_users(conn: &mut PgConnection) -> Result<Vec<User>, diesel::result::Error> {
+	use crate::schema::users::dsl;
+
+	dsl::users.load::<User>(conn)
+}

@@ -58,10 +58,6 @@ pub async fn get_all_nights(
 			}
 		},
 	};
-
-	// resp.msg = "Success".to_string();
-	// v.sort_by(|a, b| a.craziness.date.cmp(&b.craziness.date));
-	// resp.data = Some(v);
 	(code, Json(resp))
 }
 
@@ -94,9 +90,6 @@ pub async fn get_all_nights_with_user(
 		},
 	};
 
-	// resp.msg = "Success".to_string();
-	// v.sort_by(|a, b| a.craziness.date.cmp(&b.craziness.date));
-	// resp.data = Some(v);
 	(code, Json(resp))
 }
 
