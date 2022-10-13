@@ -219,48 +219,52 @@ impl eframe::App for ImOk {
 				});
 			});
 		});
-
-		egui::SidePanel::left("side_panel").min_width(120.0).show(ctx, |ui| {
-			egui::ScrollArea::both().show(ui, |ui| {
-				for j in user_entries.clone().iter() {
-					egui::CollapsingHeader::new(j.username.to_string()).show(ui, |ui| {
-						for i in night_entries.clone().iter() {
-							if i.username == j.username {
-								let response = ui.add(egui::SelectableLabel::new(
-									false,
-									format!(
-										"{} {}/{}/{}",
-										i.username,
-										i.created_at.day(),
-										i.created_at.month(),
-										i.created_at.year()
-									),
-								));
-								if response.clicked() {
-									*selected_night = Some(i.clone());
-									appstate.set_app_state(AppState::Viewing);
-								}
-								response.context_menu(|ui| {
-									if ui.button("Edit").clicked() {
-										appstate.set_app_state(AppState::Editing);
+		if *appstate == AppState::Editing ||
+			*appstate == AppState::Viewing ||
+			*appstate == AppState::Submit
+		{
+			egui::SidePanel::left("side_panel").min_width(120.0).show(ctx, |ui| {
+				egui::ScrollArea::both().show(ui, |ui| {
+					for j in user_entries.clone().iter() {
+						egui::CollapsingHeader::new(j.username.to_string()).show(ui, |ui| {
+							for i in night_entries.clone().iter() {
+								if i.username == j.username {
+									let response = ui.add(egui::SelectableLabel::new(
+										false,
+										format!(
+											"{} {}/{}/{}",
+											i.username,
+											i.created_at.day(),
+											i.created_at.month(),
+											i.created_at.year()
+										),
+									));
+									if response.clicked() {
 										*selected_night = Some(i.clone());
-										ui.close_menu();
+										appstate.set_app_state(AppState::Viewing);
 									}
-									if ui.button("Delete").clicked() {
-										delete_night(i.id).unwrap();
-										ui.close_menu();
-										Self::refresh(night_entries, user_entries);
-									}
-								});
+									response.context_menu(|ui| {
+										if ui.button("Edit").clicked() {
+											appstate.set_app_state(AppState::Editing);
+											*selected_night = Some(i.clone());
+											ui.close_menu();
+										}
+										if ui.button("Delete").clicked() {
+											delete_night(i.id).unwrap();
+											ui.close_menu();
+											Self::refresh(night_entries, user_entries);
+										}
+									});
+								}
 							}
-						}
-					});
+						});
+					}
+				});
+				if ui.add(egui::Button::new("Refresh")).clicked() {
+					Self::refresh(night_entries, user_entries);
 				}
 			});
-			if ui.add(egui::Button::new("Refresh")).clicked() {
-				Self::refresh(night_entries, user_entries);
-			}
-		});
+		}
 
 		egui::TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
 			if *appstate == AppState::Viewing && ui.button("Exit viewing mode").clicked() {
@@ -282,9 +286,8 @@ impl eframe::App for ImOk {
 						ui.text_edit_singleline(username);
 
 						ui.add_space(5.0);
-						ui.text_edit_singleline(password);
+						ui.add(egui::TextEdit::singleline(password).password(true));
 
-						ui.add_space(20.0);
 						if ui.add(egui::Button::new("Login")).clicked() {
 							// login API call
 							let user = user::User {
