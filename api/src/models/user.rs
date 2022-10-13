@@ -1,10 +1,42 @@
-use mongodb::bson::oid::ObjectId;
-use serde::Serialize;
+use crate::schema::users;
+use diesel::prelude::*;
+use serde::{Deserialize, Serialize};
 
-#[derive(Serialize)]
+#[derive(Queryable, Clone, Serialize, Deserialize, Eq, PartialEq, Debug, Default)]
 pub struct User {
-	#[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
-	pub id: Option<ObjectId>,
+	pub id: i32,
 	pub username: String,
 	pub password: String,
+	pub created_on: chrono::NaiveDateTime,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct UserJSONRequest {
+	pub username: String,
+	pub password: String,
+}
+
+#[derive(Insertable, Serialize, Deserialize)]
+#[diesel(table_name = users)]
+pub struct NewUserDB {
+	pub username: String,
+	pub password: String,
+	pub created_on: chrono::NaiveDateTime,
+}
+
+pub mod responses {
+	use super::*;
+	use mongodb::bson::Bson;
+
+	#[derive(serde::Serialize, serde::Deserialize, Default)]
+	pub struct CreateResponse {
+		pub msg: String,
+		pub data: Option<Bson>,
+	}
+
+	#[derive(serde::Serialize, serde::Deserialize, Default)]
+	pub struct LoginResponse {
+		pub msg: String,
+		pub data: Option<User>,
+	}
 }
