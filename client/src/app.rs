@@ -3,7 +3,7 @@ use crate::{
 		night::{create_night, delete_night, edit_night, get_all_nights_with_user},
 		user,
 	},
-	types::AppState,
+    types::{AppState, Display}
 };
 use api::models::{
 	night::{responses::ResponseNightsWithUser, Drunkness, Night, NightJSONRequest, NightWithUser},
@@ -31,7 +31,9 @@ pub struct ImOk {
 	current_user: User,
 
 	username: String,
-	password: String,
+    password: String,
+    display: Display,
+
 }
 
 impl Default for ImOk {
@@ -68,7 +70,8 @@ impl Default for ImOk {
 			appstate: AppState::default(),
 			current_user: User::default(),
 			username: String::from("username"),
-			password: String::from("password"),
+		    password: String::from("password"),
+                    display: Display::default(),
 		}
 	}
 }
@@ -108,7 +111,8 @@ impl ImOk {
 			appstate: state,
 			current_user: User::default(),
 			username: String::from("username"),
-			password: String::from("password"),
+		    password: String::from("password"),
+                    display: Display::default(),
 		}
 	}
 
@@ -189,7 +193,8 @@ impl eframe::App for ImOk {
 			appstate,
 			current_user,
 			username,
-			password,
+		    password,
+                    display,
 		} = self;
 
 		// Examples of how to create different panels and windows.
@@ -286,8 +291,7 @@ impl eframe::App for ImOk {
 						ui.text_edit_singleline(username);
 
 						ui.add_space(5.0);
-						ui.add(egui::TextEdit::singleline(password).password(true));
-
+					    ui.add(egui::TextEdit::singleline(password).password(true));
 						if ui.add(egui::Button::new("Login")).clicked() {
 							// login API call
 							let user = user::User {
@@ -305,10 +309,12 @@ impl eframe::App for ImOk {
 									);
 									appstate.set_app_state(AppState::Submit);
 									*current_user =
-										resp.into_json::<LoginResponse>().unwrap().data.unwrap()
+									resp.into_json::<LoginResponse>().unwrap().data.unwrap();
+                                                                    Self::refresh(night_entries, user_entries);
 								},
 								Err(err) => {
-									println!("{:?}", err);
+								    println!("{:?}", err);
+                                                                    *display = Display::LoginFailure
 								},
 							}
 						}
@@ -328,13 +334,22 @@ impl eframe::App for ImOk {
 										"TOKEN",
 										&"kavlaki".to_string(),
 									);
-									println!("GG to register");
+                                                                    *display = Display::RegisterSuccess;
 								},
 								Err(err) => {
-									println!("{:?}", err);
+								    println!("{:?}", err);
+                                                                    *display = Display::RegisterFailure
 								},
 							}
 						}
+                                            ui.add_space(10.0);
+                                            if  *display == Display::LoginFailure {
+                                                ui.label("Username or password was incorrect. Please try again.");
+                                            } else if *display == Display::RegisterFailure {
+                                                    ui.label("Username already exists.");
+                                            } else if *display == Display::RegisterSuccess {
+                                                    ui.label("Register was successful. Please use your username and password to login.");
+                                            }
 					});
 				});
 			},
