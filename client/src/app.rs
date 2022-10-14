@@ -3,7 +3,7 @@ use crate::{
 		night::{create_night, delete_night, edit_night, get_all_nights_with_user},
 		user,
 	},
-	types::{AppState, Display},
+	types::{AppState, StatusMessage},
 };
 use api::models::{
 	night::{responses::ResponseNightsWithUser, Drunkness, Night, NightJSONRequest, NightWithUser},
@@ -32,7 +32,7 @@ pub struct ImOk {
 
 	username: String,
 	password: String,
-	display: Display,
+	status_message: StatusMessage,
 }
 
 impl Default for ImOk {
@@ -70,7 +70,7 @@ impl Default for ImOk {
 			current_user: User::default(),
 			username: String::from("username"),
 			password: String::from("password"),
-			display: Display::default(),
+			status_message: StatusMessage::default(),
 		}
 	}
 }
@@ -111,7 +111,7 @@ impl ImOk {
 			current_user: User::default(),
 			username: String::from("username"),
 			password: String::from("password"),
-			display: Display::default(),
+			status_message: StatusMessage::default(),
 		}
 	}
 
@@ -193,7 +193,7 @@ impl eframe::App for ImOk {
 			current_user,
 			username,
 			password,
-			display,
+			status_message,
 		} = self;
 
 		// Examples of how to create different panels and windows.
@@ -313,7 +313,7 @@ impl eframe::App for ImOk {
 								},
 								Err(err) => {
 									println!("{:?}", err);
-									*display = Display::LoginFailure
+									*status_message = StatusMessage::LoginFailure
 								},
 							}
 						}
@@ -333,20 +333,20 @@ impl eframe::App for ImOk {
 										"TOKEN",
 										&"kavlaki".to_string(),
 									);
-									*display = Display::RegisterSuccess;
+									*status_message = StatusMessage::RegisterSuccess;
 								},
 								Err(err) => {
 									println!("{:?}", err);
-									*display = Display::RegisterFailure
+									*status_message = StatusMessage::RegisterFailure
 								},
 							}
 						}
 						ui.add_space(10.0);
-						if *display == Display::LoginFailure {
+						if *status_message == StatusMessage::LoginFailure {
                                                     ui.label(egui::RichText::new("Username or password was incorrect. Please try again.").color(egui::Color32::RED));
-						} else if *display == Display::RegisterFailure {
+						} else if *status_message == StatusMessage::RegisterFailure {
                                                     ui.label(egui::RichText::new("Username already exists").color(egui::Color32::RED));
-						} else if *display == Display::RegisterSuccess {
+						} else if *status_message == StatusMessage::RegisterSuccess {
                                                     ui.label(egui::RichText::new("Register was successful. Please use your username and password to login.").color(egui::Color32::GREEN));
 						}
 					});

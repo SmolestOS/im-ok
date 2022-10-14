@@ -18,14 +18,14 @@ impl AppState {
 	}
 }
 #[derive(Debug, PartialEq, Eq, Clone, Copy, serde::Serialize, serde::Deserialize)]
-pub enum Display {
+pub enum StatusMessage {
 	LoginFailure,
 	RegisterFailure,
 	RegisterSuccess,
 	None,
 }
 
-impl Default for Display {
+impl Default for StatusMessage {
 	fn default() -> Self {
 		Self::None
 	}
