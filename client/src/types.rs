@@ -19,14 +19,14 @@ impl AppState {
 }
 #[derive(Debug, PartialEq, Eq, Clone, Copy, serde::Serialize, serde::Deserialize)]
 pub enum Display {
-    LoginFailure,
-    RegisterFailure,
-    RegisterSuccess,
-    None
+	LoginFailure,
+	RegisterFailure,
+	RegisterSuccess,
+	None,
 }
 
 impl Default for Display {
-    fn default() -> Self {
-        Self::None
-    }
+	fn default() -> Self {
+		Self::None
+	}
 }
