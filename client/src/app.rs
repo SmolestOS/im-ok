@@ -343,11 +343,11 @@ impl eframe::App for ImOk {
 						}
 						ui.add_space(10.0);
 						if *display == Display::LoginFailure {
-							ui.label("Username or password was incorrect. Please try again.");
+                                                    ui.label(egui::RichText::new("Username or password was incorrect. Please try again.").color(egui::Color32::RED));
 						} else if *display == Display::RegisterFailure {
-							ui.label("Username already exists.");
+                                                    ui.label(egui::RichText::new("Username already exists").color(egui::Color32::RED));
 						} else if *display == Display::RegisterSuccess {
-							ui.label("Register was successful. Please use your username and password to login.");
+                                                    ui.label(egui::RichText::new("Register was successful. Please use your username and password to login.").color(egui::Color32::GREEN));
 						}
 					});
 				});
