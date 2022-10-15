@@ -24,9 +24,5 @@ pub async fn auth_middleware<B>(req: Request<B>, next: Next<B>) -> Result<Respon
 }
 
 async fn authorize_user(auth_token: &str) -> bool {
-	if auth_token.eq("TOKEN") {
-		true
-	} else {
-		false
-	}
+	auth_token.eq("TOKEN")
 }
