@@ -4,6 +4,7 @@ mod models;
 mod schema;
 
 use crate::controllers::{
+	auth_middleware::auth_middleware,
 	nights::{
 		create_night, delete_night, edit_night, get_all_nights, get_all_nights_with_user,
 		get_one_night,
@@ -11,6 +12,7 @@ use crate::controllers::{
 	user::login_user,
 };
 use axum::{
+	middleware,
 	routing::{delete, get, patch, post},
 	Router,
 };
@@ -51,7 +53,8 @@ async fn main() {
 		.route("/new", post(create_night))
 		.route("/:id", get(get_one_night))
 		.route("/:id", delete(delete_night))
-		.route("/:id", patch(edit_night));
+		.route("/:id", patch(edit_night))
+		.layer(middleware::from_fn(auth_middleware));
 
 	let app = Router::new()
 		// NOTE: Nesting allow us to have endpoints with below
