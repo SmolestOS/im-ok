@@ -1,71 +1,67 @@
 use crate::{
+	controllers::auth_middleware::Claims,
 	db,
 	models::night::{responses::*, NightJSONRequest},
-    State,
-    controllers::auth_middleware::Claims,
+	State,
 };
 use axum::{extract::Path, http::StatusCode, Extension, Json};
+use jsonwebtoken::{decode, errors::ErrorKind, Algorithm, DecodingKey, Validation};
 use mongodb::bson::Bson;
-use jsonwebtoken::errors::ErrorKind;
-use jsonwebtoken::{decode,Algorithm, DecodingKey, Validation};
 
 pub async fn create_night(
-    Json(payload): Json<NightJSONRequest>,
-    Extension(state): Extension<State>,
-    token: String
+	Json(payload): Json<NightJSONRequest>,
+	Extension(state): Extension<State>,
+	token: String,
 ) -> (StatusCode, Json<CreateResponse>) {
-    let mut resp = CreateResponse::default();
-    let mut code = StatusCode::OK;
+	let mut resp = CreateResponse::default();
+	let mut code = StatusCode::OK;
 
-    tracing::info!("{:?}", payload);
-    match decode::<Claims>(
-        &token,
-        &DecodingKey::from_secret(std::env::var("KEY").unwrap().as_bytes()),
-        &Validation::new(Algorithm::HS512),
-    ) {
-        Ok(c) => c,
-        Err(err) => match *err.kind() {
-            ErrorKind::InvalidToken => panic!(),
-            _ => panic!(),
-        },
-    };
+	tracing::info!("{:?}", payload);
+	match decode::<Claims>(
+		&token,
+		&DecodingKey::from_secret(std::env::var("KEY").unwrap().as_bytes()),
+		&Validation::new(Algorithm::HS512),
+	) {
+		Ok(c) => c,
+		Err(err) => match *err.kind() {
+			ErrorKind::InvalidToken => panic!(),
+			_ => panic!(),
+		},
+	};
 
+	match db::nights::create_night(&mut state.db_connection.get().unwrap(), payload) {
+		Ok(index) => {
+			resp.msg = "Created".to_string();
+			resp.data = Some(Bson::from(index.to_string()));
+		},
+		Err(err) => {
+			resp.msg = err.to_string();
+			tracing::info!("{:?}", resp.msg);
+			resp.data = Some(Bson::default());
+			code = StatusCode::BAD_REQUEST;
+		},
+	}
 
-
-    match db::nights::create_night(&mut state.db_connection.get().unwrap(), payload) {
-        Ok(index) => {
-	    resp.msg = "Created".to_string();
-	    resp.data = Some(Bson::from(index.to_string()));
-        },
-        Err(err) => {
-	    resp.msg = err.to_string();
-	    tracing::info!("{:?}", resp.msg);
-	    resp.data = Some(Bson::default());
-	    code = StatusCode::BAD_REQUEST;
-        },
-    }
-
-
-    (code, Json(resp))
+	(code, Json(resp))
 }
 
 pub async fn get_all_nights(
-    Extension(state): Extension<State>,
-    token: String
+	Extension(state): Extension<State>,
+	token: String,
 ) -> (StatusCode, Json<ResponseNights>) {
 	let mut resp = ResponseNights::default();
-    let mut code = StatusCode::OK;
-    match decode::<Claims>(
-        &token,
-        &DecodingKey::from_secret(std::env::var("KEY").unwrap().as_bytes()),
-        &Validation::new(Algorithm::HS512),
-    ) {
-        Ok(c) => c,
-        Err(err) => match *err.kind() {
-            ErrorKind::InvalidToken => panic!(), // Example on how to handle a specific error
-            _ => panic!(),
-        },
-    };
+	let mut code = StatusCode::OK;
+	match decode::<Claims>(
+		&token,
+		&DecodingKey::from_secret(std::env::var("KEY").unwrap().as_bytes()),
+		&Validation::new(Algorithm::HS512),
+	) {
+		Ok(c) => c,
+		Err(err) => match *err.kind() {
+			ErrorKind::InvalidToken => panic!(), // Example on how to handle a specific error
+			_ => panic!(),
+		},
+	};
 
 	match db::nights::get_all_nights(&mut state.db_connection.get().unwrap()) {
 		Ok(mut index) => {
@@ -90,27 +86,26 @@ pub async fn get_all_nights(
 		},
 	};
 
-
 	(code, Json(resp))
 }
 
 pub async fn get_all_nights_with_user(
-    Extension(state): Extension<State>,
-    token: String
+	Extension(state): Extension<State>,
+	token: String,
 ) -> (StatusCode, Json<ResponseNightsWithUser>) {
 	let mut resp = ResponseNightsWithUser::default();
-    let mut code = StatusCode::OK;
-    match decode::<Claims>(
-        &token,
-        &DecodingKey::from_secret(std::env::var("KEY").unwrap().as_bytes()),
-        &Validation::new(Algorithm::HS512),
-    ) {
-        Ok(c) => c,
-        Err(err) => match *err.kind() {
-            ErrorKind::InvalidToken => panic!(), // Example on how to handle a specific error
-            _ => panic!(),
-        },
-    };
+	let mut code = StatusCode::OK;
+	match decode::<Claims>(
+		&token,
+		&DecodingKey::from_secret(std::env::var("KEY").unwrap().as_bytes()),
+		&Validation::new(Algorithm::HS512),
+	) {
+		Ok(c) => c,
+		Err(err) => match *err.kind() {
+			ErrorKind::InvalidToken => panic!(), // Example on how to handle a specific error
+			_ => panic!(),
+		},
+	};
 
 	match db::nights::get_all_nights_with_user(&mut state.db_connection.get().unwrap()) {
 		Ok(mut index) => {
@@ -143,22 +138,22 @@ pub async fn get_all_nights_with_user(
 
 pub async fn get_one_night(
 	Path(item_id): Path<i32>,
-    Extension(state): Extension<State>,
-    token: String
+	Extension(state): Extension<State>,
+	token: String,
 ) -> (StatusCode, Json<ResponseNight>) {
 	let mut resp = ResponseNight::default();
-    let mut code = StatusCode::OK;
-    match decode::<Claims>(
-        &token,
-        &DecodingKey::from_secret(std::env::var("KEY").unwrap().as_bytes()),
-        &Validation::new(Algorithm::HS512),
-    ) {
-        Ok(c) => c,
-        Err(err) => match *err.kind() {
-            ErrorKind::InvalidToken => panic!(), // Example on how to handle a specific error
-            _ => panic!(),
-        },
-    };
+	let mut code = StatusCode::OK;
+	match decode::<Claims>(
+		&token,
+		&DecodingKey::from_secret(std::env::var("KEY").unwrap().as_bytes()),
+		&Validation::new(Algorithm::HS512),
+	) {
+		Ok(c) => c,
+		Err(err) => match *err.kind() {
+			ErrorKind::InvalidToken => panic!(), // Example on how to handle a specific error
+			_ => panic!(),
+		},
+	};
 
 	match db::nights::get_night(&mut state.db_connection.get().unwrap(), item_id) {
 		Ok(night) => {
@@ -182,22 +177,22 @@ pub async fn get_one_night(
 
 pub async fn delete_night(
 	Path(item_id): Path<i32>,
-    Extension(state): Extension<State>,
-    token: String
+	Extension(state): Extension<State>,
+	token: String,
 ) -> (StatusCode, Json<DeleteResponse>) {
 	let mut resp = DeleteResponse::default();
-    let mut code = StatusCode::OK;
-    match decode::<Claims>(
-        &token,
-        &DecodingKey::from_secret(std::env::var("KEY").unwrap().as_bytes()),
-        &Validation::new(Algorithm::HS512),
-    ) {
-        Ok(c) => c,
-        Err(err) => match *err.kind() {
-            ErrorKind::InvalidToken => panic!(), // Example on how to handle a specific error
-            _ => panic!(),
-        },
-    };
+	let mut code = StatusCode::OK;
+	match decode::<Claims>(
+		&token,
+		&DecodingKey::from_secret(std::env::var("KEY").unwrap().as_bytes()),
+		&Validation::new(Algorithm::HS512),
+	) {
+		Ok(c) => c,
+		Err(err) => match *err.kind() {
+			ErrorKind::InvalidToken => panic!(), // Example on how to handle a specific error
+			_ => panic!(),
+		},
+	};
 
 	match db::nights::delete_night(&mut state.db_connection.get().unwrap(), item_id) {
 		Ok(count) =>
@@ -222,22 +217,22 @@ pub async fn delete_night(
 pub async fn edit_night(
 	Path(item_id): Path<i32>,
 	Json(payload): Json<NightJSONRequest>,
-    Extension(state): Extension<State>,
-    token: String
+	Extension(state): Extension<State>,
+	token: String,
 ) -> (StatusCode, Json<EditResponse>) {
 	let mut resp = EditResponse::default();
-    let mut code = StatusCode::OK;
-    match decode::<Claims>(
-        &token,
-        &DecodingKey::from_secret(std::env::var("KEY").unwrap().as_bytes()),
-        &Validation::new(Algorithm::HS512),
-    ) {
-        Ok(c) => c,
-        Err(err) => match *err.kind() {
-            ErrorKind::InvalidToken => panic!(), // Example on how to handle a specific error
-            _ => panic!(),
-        },
-    };
+	let mut code = StatusCode::OK;
+	match decode::<Claims>(
+		&token,
+		&DecodingKey::from_secret(std::env::var("KEY").unwrap().as_bytes()),
+		&Validation::new(Algorithm::HS512),
+	) {
+		Ok(c) => c,
+		Err(err) => match *err.kind() {
+			ErrorKind::InvalidToken => panic!(), // Example on how to handle a specific error
+			_ => panic!(),
+		},
+	};
 
 	match db::nights::edit_night(&mut state.db_connection.get().unwrap(), item_id, payload) {
 		Ok(count) =>

@@ -1,3 +1,4 @@
+use super::auth_middleware::token_gen;
 use crate::{
 	db,
 	models::user::{responses::*, UserJSONRequest},
@@ -5,7 +6,6 @@ use crate::{
 };
 use axum::{http::StatusCode, Extension, Json};
 use mongodb::bson::Bson;
-use super::auth_middleware::token_gen;
 
 pub async fn register_user(
 	Json(payload): Json<UserJSONRequest>,
@@ -39,31 +39,31 @@ pub async fn register_user(
 }
 
 pub async fn login_user(
-    Json(payload): Json<UserJSONRequest>,
-    Extension(state): Extension<State>,
+	Json(payload): Json<UserJSONRequest>,
+	Extension(state): Extension<State>,
 ) -> (StatusCode, Json<LoginResponse>) {
-    let mut resp = LoginResponse::default();
-    let mut code = StatusCode::OK;
-    let mut login_data = LoginData::default();
+	let mut resp = LoginResponse::default();
+	let mut code = StatusCode::OK;
+	let mut login_data = LoginData::default();
 
-    match db::users::get_user(&mut state.db_connection.get().unwrap(), payload) {
-	Ok(user) => {
-	    resp.msg = "Logged in successfully".to_string();
-            login_data.user = user;
-            login_data.token = token_gen().await.unwrap();
-	    resp.data = Some(login_data);
-	},
-	Err(err) =>
-	    if let diesel::result::Error::NotFound = err {
-		resp.msg = "User not found or wrong credentials".to_string();
-		resp.data = None;
-		code = StatusCode::NOT_FOUND;
-	    } else {
-		resp.msg = err.to_string();
-		resp.data = None;
-		code = StatusCode::NOT_FOUND;
-	    },
-    }
+	match db::users::get_user(&mut state.db_connection.get().unwrap(), payload) {
+		Ok(user) => {
+			resp.msg = "Logged in successfully".to_string();
+			login_data.user = user;
+			login_data.token = token_gen().await.unwrap();
+			resp.data = Some(login_data);
+		},
+		Err(err) =>
+			if let diesel::result::Error::NotFound = err {
+				resp.msg = "User not found or wrong credentials".to_string();
+				resp.data = None;
+				code = StatusCode::NOT_FOUND;
+			} else {
+				resp.msg = err.to_string();
+				resp.data = None;
+				code = StatusCode::NOT_FOUND;
+			},
+	}
 
-    (code, Json(resp))
+	(code, Json(resp))
 }
