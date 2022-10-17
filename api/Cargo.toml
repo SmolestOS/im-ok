@@ -19,6 +19,7 @@ diesel = { version = "2.0.0", features = ["postgres", "r2d2", "chrono"] }
 diesel-derive-enum = { version = "2.0.0-rc.0", features = ["postgres"] }
 dotenvy = "0.15"
 tower = "0.4.13"
+jsonwebtoken = "8"
 
 [dependencies.mongodb]
 version = "2.3.0"

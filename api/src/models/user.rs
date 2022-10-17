@@ -25,18 +25,24 @@ pub struct NewUserDB {
 }
 
 pub mod responses {
-	use super::*;
-	use mongodb::bson::Bson;
+    use super::*;
+    use mongodb::bson::Bson;
 
-	#[derive(serde::Serialize, serde::Deserialize, Default)]
-	pub struct CreateResponse {
-		pub msg: String,
-		pub data: Option<Bson>,
-	}
+    #[derive(serde::Serialize, serde::Deserialize, Default)]
+    pub struct CreateResponse {
+	pub msg: String,
+	pub data: Option<Bson>,
+    }
 
-	#[derive(serde::Serialize, serde::Deserialize, Default)]
-	pub struct LoginResponse {
-		pub msg: String,
-		pub data: Option<User>,
-	}
+    #[derive(serde::Serialize, serde::Deserialize, Default)]
+    pub struct LoginData {
+        pub token: String,
+        pub user: User,
+    }
+
+    #[derive(serde::Serialize, serde::Deserialize, Default)]
+    pub struct LoginResponse {
+	pub msg: String,
+	pub data: Option<LoginData>,
+    }
 }
