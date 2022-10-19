@@ -8,7 +8,7 @@ use crate::controllers::{
 		create_night, delete_night, edit_night, get_all_nights, get_all_nights_with_user,
 		get_one_night,
 	},
-	user::login_user,
+	user::{__path_register_user, login_user},
 };
 use axum::{
 	routing::{delete, get, patch, post},
@@ -20,8 +20,11 @@ use diesel::{
 	r2d2::{ConnectionManager, Pool},
 	PgConnection,
 };
+use models::user::User;
 use std::net::SocketAddr;
 use tower_http::{add_extension::AddExtensionLayer, trace::TraceLayer};
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
 
 #[derive(Clone)]
 pub struct State {
@@ -38,6 +41,23 @@ impl State {
 async fn main() {
 	tracing_subscriber::fmt::init();
 	dotenvy::dotenv().ok();
+
+	#[derive(OpenApi)]
+	#[openapi(
+		paths(
+			register_user,
+		),
+		components(
+			schemas(User,
+					api::models::user::responses::CreateResponse,
+api::models::user::UserJSONRequest,
+			)
+),
+		tags(
+			(name = "todo", description = "Todo items")
+		)
+	)]
+	struct ApiDoc;
 
 	let database = establish_connection().await;
 
@@ -56,6 +76,7 @@ async fn main() {
 	let app = Router::new()
 		// NOTE: Nesting allow us to have endpoints with below
 		// the same endpoint - @charmitro
+		.merge(SwaggerUi::new("/swagger-ui/*tail").url("/api-doc/openapi.json", ApiDoc::openapi()))
 		.nest("/users", users_routes)
 		.nest("/nights", night_routes)
 		.layer(TraceLayer::new_for_http())

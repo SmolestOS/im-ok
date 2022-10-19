@@ -6,6 +6,14 @@ use crate::{
 use axum::{http::StatusCode, Extension, Json};
 use mongodb::bson::Bson;
 
+#[utoipa::path(
+	post,
+	path = "/users/register",
+	request_body = UserJSONRequest,
+	responses(
+		(status = 200, description = "Creates/Registers a new user", body = [CreateResponse])
+	)
+)]
 pub async fn register_user(
 	Json(payload): Json<UserJSONRequest>,
 	Extension(state): Extension<State>,
