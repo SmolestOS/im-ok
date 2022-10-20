@@ -2,9 +2,12 @@ use crate::schema::nights;
 use chrono::NaiveDate;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
 /// An enum to track the level of Drunkness (0 - 5)
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, diesel_derive_enum::DbEnum)]
+#[derive(
+	Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, diesel_derive_enum::DbEnum, ToSchema,
+)]
 pub enum Drunkness {
 	Cool,
 	LittleHead,
@@ -20,7 +23,7 @@ impl Default for Drunkness {
 	}
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Clone, Default, ToSchema)]
 pub struct Night {
 	pub id: i32,
 	pub user_id: i32,
@@ -30,10 +33,11 @@ pub struct Night {
 	pub talked_2x: bool,
 	pub location: String,
 	pub description: String,
+	#[schema(value_type = Date)]
 	pub created_at: NaiveDate,
 }
 
-#[derive(Serialize, Deserialize, AsChangeset, Debug)]
+#[derive(Serialize, Deserialize, AsChangeset, Debug, ToSchema)]
 #[diesel(table_name = nights)]
 pub struct NightJSONRequest {
 	pub user_id: i32,
@@ -45,7 +49,7 @@ pub struct NightJSONRequest {
 	pub description: String,
 }
 
-#[derive(Insertable, Serialize, Deserialize)]
+#[derive(Insertable, Serialize, Deserialize, ToSchema)]
 #[diesel(table_name = nights)]
 pub struct NewNightDB {
 	pub user_id: i32,
@@ -55,10 +59,11 @@ pub struct NewNightDB {
 	pub talked_2x: bool,
 	pub location: String,
 	pub description: String,
+	#[schema(value_type = Date)]
 	pub created_at: NaiveDate,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Clone, Default, ToSchema)]
 pub struct NightWithUser {
 	pub id: i32,
 	pub user_id: i32,
@@ -69,44 +74,44 @@ pub struct NightWithUser {
 	pub talked_2x: bool,
 	pub location: String,
 	pub description: String,
+	#[schema(value_type = Date)]
 	pub created_at: NaiveDate,
 }
 
 pub mod responses {
 	use super::*;
-	use mongodb::bson::Bson;
 
-	#[derive(serde::Serialize, serde::Deserialize, Default)]
+	#[derive(serde::Serialize, serde::Deserialize, Default, ToSchema)]
 	pub struct CreateResponse {
 		pub msg: String,
-		pub data: Option<Bson>,
+		pub data: Option<usize>,
 	}
 
-	#[derive(serde::Serialize, serde::Deserialize, Default)]
+	#[derive(serde::Serialize, serde::Deserialize, Default, ToSchema)]
 	pub struct ResponseNights {
 		pub msg: String,
 		pub data: Option<Vec<Night>>,
 	}
 
-	#[derive(serde::Serialize, serde::Deserialize, Default)]
+	#[derive(serde::Serialize, serde::Deserialize, Default, ToSchema)]
 	pub struct ResponseNightsWithUser {
 		pub msg: String,
 		pub data: Option<Vec<NightWithUser>>,
 	}
 
-	#[derive(serde::Serialize, serde::Deserialize, Default)]
+	#[derive(serde::Serialize, serde::Deserialize, Default, ToSchema)]
 	pub struct ResponseNight {
 		pub msg: String,
 		pub data: Option<Night>,
 	}
 
-	#[derive(serde::Serialize, serde::Deserialize, Default)]
+	#[derive(serde::Serialize, serde::Deserialize, Default, ToSchema)]
 	pub struct DeleteResponse {
 		pub msg: String,
 		pub data: Option<usize>,
 	}
 
-	#[derive(serde::Serialize, serde::Deserialize, Default)]
+	#[derive(serde::Serialize, serde::Deserialize, Default, ToSchema)]
 	pub struct EditResponse {
 		pub msg: String,
 		pub data: Option<usize>,
