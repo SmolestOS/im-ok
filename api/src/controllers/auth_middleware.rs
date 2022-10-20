@@ -17,7 +17,7 @@ pub async fn auth_middleware<B>(req: Request<B>, next: Next<B>) -> Result<Respon
 	let auth_header = if let Some(auth_header) = auth_header {
 		auth_header
 	} else {
-		return Err(StatusCode::BAD_GATEWAY)
+		return Err(StatusCode::UNAUTHORIZED)
 	};
 
 	if authorize_user(&auth_header[7..auth_header.len()]).await {
