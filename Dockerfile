@@ -24,7 +24,7 @@ RUN groupadd $APP_USER \
     && mkdir -p ${APP}
 
 COPY --from=builder /im-ok/target/release/api ${APP}/api
-COPY --from=builder /im-ok/.env ${APP}/.env
+
 RUN chown -R $APP_USER:$APP_USER ${APP}
 
 USER $APP_USER
