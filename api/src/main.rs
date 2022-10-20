@@ -46,22 +46,23 @@ async fn main() {
 
 	#[derive(OpenApi)]
 	#[openapi(
-		paths(
-			register_user,
-            login_user,
+        paths(
             create_night,
             get_all_nights,
             get_all_nights_with_user,
             get_one_night,
             delete_night,
-            edit_night
-		),
-		components(
-			schemas(
-				User,
-				api::models::user::responses::LoginResponse,
+            edit_night,
+            register_user,
+            login_user,
+	),
+	components(
+	    schemas(
+		User,
+		api::models::user::responses::LoginResponse,
                 api::models::user::responses::CreateResponse,
                 api::models::user::UserJSONRequest,
+                api::models::user::responses::LoginData,
                 Night,
                 api::models::night::responses::CreateResponse,
                 api::models::night::responses::ResponseNights,
@@ -72,11 +73,11 @@ async fn main() {
                 api::models::night::NightJSONRequest,
                 api::models::night::NightWithUser,
                 api::models::night::Drunkness,
-	    	)
+	    )
         ),
-		tags(
-			(name = "imok", description = "")
-		)
+	tags(
+	    (name = "crate", description = "The night functions all need the token string from login to be usable."),
+	)
     )]
 	struct ApiDoc;
 
