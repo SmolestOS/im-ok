@@ -29,26 +29,32 @@ pub async fn auth_middleware<B>(req: Request<B>, next: Next<B>) -> Result<Respon
 
 async fn authorize_user(auth_token: &str) -> bool {
 	let mut validation = Validation::new(Algorithm::HS256);
-	validation.sub = Some("b@b.com".to_string());
-	validation.set_audience(&["me"]);
-    let key = std::env::var("KEY").expect("KEY must be set").as_bytes().to_owned();
+	validation.sub = Some("devops@pouts_os.org".to_string());
+	validation.set_audience(&["pouts_os"]);
+	let key = std::env::var("KEY")
+		.unwrap_or_else(|_| "secret".to_string())
+		.as_bytes()
+		.to_owned();
 	tracing::debug!("{}", auth_token);
 
 	match decode::<Claims>(auth_token, &DecodingKey::from_secret(&key), &validation) {
 		Ok(c) => {
-			tracing::debug!("{:?}", c);
+			tracing::debug!("{:?} FILE 39\n", c);
 			true
 		},
-		Err(err) => match *err.kind() {
-			ErrorKind::InvalidToken => {
-				tracing::debug!("{:?}", err);
-				false
-			}, // Example on how to handle a specific error
-			ErrorKind::InvalidIssuer => {
-				tracing::debug!("{:?}", err);
-				false
-			},
-			_ => false,
+		Err(err) => {
+			tracing::debug!("{:?}", err);
+			match *err.kind() {
+				ErrorKind::InvalidToken => {
+					tracing::debug!("{:?}", err);
+					false
+				}, // Example on how to handle a specific error
+				ErrorKind::InvalidIssuer => {
+					tracing::debug!("{:?}", err);
+					false
+				},
+				_ => false,
+			}
 		},
 	}
 }
@@ -61,13 +67,16 @@ pub struct Claims {
 	exp: usize,
 }
 
-pub async fn token_gen(username: String) -> jsonwebtoken::errors::Result<String> {
-	let key = std::env::var("KEY").expect("KEY must be set").as_bytes().to_owned();
+pub async fn token_gen() -> jsonwebtoken::errors::Result<String> {
+	let key = std::env::var("KEY")
+		.unwrap_or_else(|_| "secret".to_string())
+		.as_bytes()
+		.to_owned();
 	let my_claims = Claims {
-		aud: "me".to_owned(),
-		sub: username,
-		company: std::env::var("COMPANY").expect("COMPANY must be set").to_owned(),
-	    exp: std::env::var("EXPIRATION").expect("EXPIRATION must be set").parse::<usize>().unwrap(),
+		aud: "pouts_os".to_string(),
+		sub: "devops@pouts_os.org".to_string(),
+		company: std::env::var("COMPANY").unwrap_or_else(|_| "Pouts_OS".to_string()),
+		exp: 2000000000, // May 2033
 	};
 	encode(&Header::default(), &my_claims, &EncodingKey::from_secret(&key))
 }

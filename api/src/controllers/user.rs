@@ -66,7 +66,7 @@ pub async fn login_user(
 		Ok(user) => {
 			resp.msg = "Logged in successfully".to_string();
 			login_data.user = user;
-			login_data.token = token_gen(login_data.user.username.clone()).await.unwrap();
+			login_data.token = token_gen().await.unwrap();
 			resp.data = Some(login_data);
 		},
 		Err(err) =>
