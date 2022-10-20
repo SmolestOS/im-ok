@@ -257,8 +257,12 @@ impl eframe::App for ImOk {
 										&"kavlaki".to_string(),
 									);
 									appstate.set_app_state(AppState::Submit);
-									*current_user =
-										resp.into_json::<LoginResponse>().unwrap().data.unwrap()
+									*current_user = resp
+										.into_json::<LoginResponse>()
+										.unwrap()
+										.data
+										.unwrap()
+										.user
 								},
 								Err(err) => {
 									println!("{:?}", err);
