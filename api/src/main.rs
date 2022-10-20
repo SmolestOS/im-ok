@@ -103,7 +103,10 @@ async fn main() {
 
 	let addr = SocketAddr::from((
 		[0, 0, 0, 0],
-		std::env::var("PORT").unwrap_or("3000".to_string()).parse::<u16>().unwrap(),
+		std::env::var("PORT")
+			.unwrap_or_else(|_| "3000".to_string())
+			.parse::<u16>()
+			.unwrap(),
 	));
 	tracing::debug!("Listening on {}", addr);
 	axum::Server::bind(&addr).serve(app.into_make_service()).await.unwrap();
