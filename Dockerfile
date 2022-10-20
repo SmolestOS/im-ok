@@ -4,8 +4,7 @@ FROM rust:latest as builder
 RUN USER=root cargo new --bin im-ok
 WORKDIR ./im-ok
 COPY . .
-COPY ./.env ./.env
-# Build empty app with downloaded dependencies to produce a stable image layer for next build
+
 RUN cargo build -p api --release
 
 FROM debian:buster-slim
