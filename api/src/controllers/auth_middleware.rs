@@ -31,10 +31,10 @@ async fn authorize_user(auth_token: &str) -> bool {
 	let mut validation = Validation::new(Algorithm::HS256);
 	validation.sub = Some("b@b.com".to_string());
 	validation.set_audience(&["me"]);
-	let key = b"secret";
+    let key = std::env::var("KEY").expect("KEY must be set").as_bytes().to_owned();
 	tracing::debug!("{}", auth_token);
 
-	match decode::<Claims>(auth_token, &DecodingKey::from_secret(key), &validation) {
+	match decode::<Claims>(auth_token, &DecodingKey::from_secret(&key), &validation) {
 		Ok(c) => {
 			tracing::debug!("{:?}", c);
 			true
@@ -61,13 +61,13 @@ pub struct Claims {
 	exp: usize,
 }
 
-pub async fn token_gen() -> jsonwebtoken::errors::Result<String> {
-	let key = b"secret";
+pub async fn token_gen(username: String) -> jsonwebtoken::errors::Result<String> {
+	let key = std::env::var("KEY").expect("KEY must be set").as_bytes().to_owned();
 	let my_claims = Claims {
 		aud: "me".to_owned(),
-		sub: "b@b.com".to_owned(),
-		company: "ACME".to_owned(),
-		exp: 10000000000,
+		sub: username,
+		company: std::env::var("COMPANY").expect("COMPANY must be set").to_owned(),
+	    exp: std::env::var("EXPIRATION").expect("EXPIRATION must be set").parse::<usize>().unwrap(),
 	};
-	encode(&Header::default(), &my_claims, &EncodingKey::from_secret(key))
+	encode(&Header::default(), &my_claims, &EncodingKey::from_secret(&key))
 }
