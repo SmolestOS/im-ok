@@ -45,6 +45,16 @@ pub async fn register_user(
 	(code, Json(resp))
 }
 
+#[utoipa::path(
+    post,
+    path = "/users/login",
+    request_body = UserJSONRequest,
+    responses(
+	(status = 200, description = "Login with a user", body = [CreateResponse])
+    )
+)]
+
+
 pub async fn login_user(
 	Json(payload): Json<UserJSONRequest>,
 	Extension(state): Extension<State>,

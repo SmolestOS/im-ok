@@ -5,22 +5,21 @@ mod schema;
 
 use crate::controllers::{
 	nights::{
-		create_night, delete_night, edit_night, get_all_nights, get_all_nights_with_user,
-		get_one_night,
+		__path_create_night, create_night, __path_delete_night, delete_night, __path_edit_night, edit_night, __path_get_all_nights, get_all_nights, __path_get_all_nights_with_user,get_all_nights_with_user,__path_get_one_night, get_one_night
 	},
-	user::{__path_register_user, login_user},
+	user::{__path_register_user, __path_login_user, register_user, login_user},
 };
 use axum::{
 	routing::{delete, get, patch, post},
 	Router,
 };
-use controllers::user::register_user;
 use db::establish_connection;
 use diesel::{
 	r2d2::{ConnectionManager, Pool},
 	PgConnection,
 };
 use models::user::User;
+use models::night::Night;
 use std::net::SocketAddr;
 use tower_http::{add_extension::AddExtensionLayer, trace::TraceLayer};
 use utoipa::OpenApi;
@@ -42,21 +41,41 @@ async fn main() {
 	tracing_subscriber::fmt::init();
 	dotenvy::dotenv().ok();
 
-	#[derive(OpenApi)]
-	#[openapi(
-		paths(
-			register_user,
-		),
-		components(
-			schemas(User,
-					api::models::user::responses::CreateResponse,
-api::models::user::UserJSONRequest,
-			)
-),
-		tags(
-			(name = "todo", description = "Todo items")
-		)
-	)]
+    #[derive(OpenApi)]
+    #[openapi(
+	paths(
+	    register_user,
+            login_user,
+            create_night,
+            get_all_nights,
+            get_all_nights_with_user,
+            get_one_night,
+            delete_night,
+            edit_night
+	),
+	components(
+	    schemas(User,
+		    api::models::user::responses::LoginResponse,
+                    api::models::user::responses::CreateResponse,
+                    api::models::user::UserJSONRequest,
+                    Night,
+                    api::models::night::responses::CreateResponse,
+                    api::models::night::responses::ResponseNights,
+                    api::models::night::responses::ResponseNightsWithUser,
+                    api::models::night::responses::ResponseNight,
+                    api::models::night::responses::DeleteResponse,
+                    api::models::night::responses::EditResponse,
+                    api::models::night::NightJSONRequest,
+                    api::models::night::NightWithUser,
+                    api::models::night::Drunkness,
+
+
+	    )
+        ),
+	tags(
+	    (name = "todo", description = "Todo items")
+	)
+    )]
 	struct ApiDoc;
 
 	let database = establish_connection().await;

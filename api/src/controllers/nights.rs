@@ -6,6 +6,14 @@ use crate::{
 use axum::{extract::Path, http::StatusCode, Extension, Json};
 use mongodb::bson::Bson;
 
+#[utoipa::path(
+    post,
+    path = "/nights/new",
+    request_body = NightJSONRequest,
+    responses(
+	(status = 200, description = "Creates a new night entry for the current user", body = [CreateResponse])
+    )
+)]
 pub async fn create_night(
 	Json(payload): Json<NightJSONRequest>,
 	Extension(state): Extension<State>,
@@ -29,7 +37,13 @@ pub async fn create_night(
 
 	(code, Json(resp))
 }
-
+#[utoipa::path(
+    get,
+    path = "/nights/",
+    responses(
+	(status = 200, description = "Get all night entries", body = [ResponseNights])
+    )
+)]
 pub async fn get_all_nights(
 	Extension(state): Extension<State>,
 ) -> (StatusCode, Json<ResponseNights>) {
@@ -59,12 +73,16 @@ pub async fn get_all_nights(
 		},
 	};
 
-	// resp.msg = "Success".to_string();
-	// v.sort_by(|a, b| a.craziness.date.cmp(&b.craziness.date));
-	// resp.data = Some(v);
+
 	(code, Json(resp))
 }
-
+#[utoipa::path(
+    get,
+    path = "/nights/with_users",
+    responses(
+	(status = 200, description = "Get all night entries but with the user attached to them", body = [ResponseNightsWithUser])
+    )
+)]
 pub async fn get_all_nights_with_user(
 	Extension(state): Extension<State>,
 ) -> (StatusCode, Json<ResponseNightsWithUser>) {
@@ -93,12 +111,18 @@ pub async fn get_all_nights_with_user(
 			}
 		},
 	};
-
-	// resp.msg = "Success".to_string();
-	// v.sort_by(|a, b| a.craziness.date.cmp(&b.craziness.date));
-	// resp.data = Some(v);
 	(code, Json(resp))
 }
+#[utoipa::path(
+    get,
+    path = "/nights/{id}",
+    responses(
+	(status = 200, description = "Getting one night using the corresponding id", body = [ResponseNight])
+    ),
+    params(
+        ("id" = i32,),
+        )
+)]
 
 pub async fn get_one_night(
 	Path(item_id): Path<i32>,
@@ -127,6 +151,18 @@ pub async fn get_one_night(
 	(code, Json(resp))
 }
 
+#[utoipa::path(
+    delete,
+    path = "/nights/{id}",
+    responses(
+	(status = 200, description = "Delete a specific night using the corresponding id", body = [DeleteResponse])
+    ),
+    params(
+        ("id" = i32,),
+    )
+)]
+
+
 pub async fn delete_night(
 	Path(item_id): Path<i32>,
 	Extension(state): Extension<State>,
@@ -153,6 +189,17 @@ pub async fn delete_night(
 
 	(code, Json(resp))
 }
+#[utoipa::path(
+    patch,
+    path = "/nights/{id}",
+    request_body = NightJSONRequest,
+    responses(
+	(status = 200, description = "Edit a night using the corresponding id", body = [EditResponse])
+    ),
+    params(
+        ("id" = i32,),
+    )
+)]
 
 pub async fn edit_night(
 	Path(item_id): Path<i32>,

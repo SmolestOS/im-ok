@@ -35,7 +35,7 @@ pub mod responses {
 		pub data: Option<Bson>,
 	}
 
-	#[derive(serde::Serialize, serde::Deserialize, Default)]
+	#[derive(serde::Serialize, serde::Deserialize, Default, ToSchema)]
 	pub struct LoginResponse {
 		pub msg: String,
 		pub data: Option<User>,
