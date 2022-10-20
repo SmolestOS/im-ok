@@ -101,7 +101,8 @@ async fn main() {
 		.layer(TraceLayer::new_for_http())
 		.layer(AddExtensionLayer::new(State::new(database)));
 
-	let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+
+	let addr = SocketAddr::from(([0, 0, 0, 0], std::env::var("PORT").unwrap_or("3000".to_string()).parse::<u16>().unwrap()));
 	tracing::debug!("Listening on {}", addr);
 	axum::Server::bind(&addr).serve(app.into_make_service()).await.unwrap();
 }
