@@ -4,7 +4,6 @@ use crate::{
 	State,
 };
 use axum::{http::StatusCode, Extension, Json};
-use mongodb::bson::Bson;
 
 #[utoipa::path(
 	post,
@@ -27,7 +26,7 @@ pub async fn register_user(
 	) {
 		Ok(index) => {
 			resp.msg = "Created".to_string();
-			resp.data = Some(Bson::from(index.to_string()));
+			resp.data = Some(index);
 		},
 		Err(err) => {
 			if let diesel::result::Error::DatabaseError(
@@ -36,7 +35,7 @@ pub async fn register_user(
 			) = err
 			{
 				resp.msg = "User already exists".to_string();
-				resp.data = Some(Bson::default());
+				resp.data = None;
 				code = StatusCode::BAD_REQUEST;
 			}
 		},
@@ -53,7 +52,6 @@ pub async fn register_user(
 	(status = 200, description = "Login with a user", body = [CreateResponse])
     )
 )]
-
 
 pub async fn login_user(
 	Json(payload): Json<UserJSONRequest>,

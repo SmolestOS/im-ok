@@ -8,6 +8,7 @@ pub struct User {
 	pub id: i32,
 	pub username: String,
 	pub password: String,
+	#[schema(value_type = Date)]
 	pub created_on: chrono::NaiveDateTime,
 }
 
@@ -17,22 +18,22 @@ pub struct UserJSONRequest {
 	pub password: String,
 }
 
-#[derive(Insertable, Serialize, Deserialize)]
+#[derive(Insertable, Serialize, Deserialize, ToSchema)]
 #[diesel(table_name = users)]
 pub struct NewUserDB {
 	pub username: String,
 	pub password: String,
+	#[schema(value_type = Date)]
 	pub created_on: chrono::NaiveDateTime,
 }
 
 pub mod responses {
 	use super::*;
-	use mongodb::bson::Bson;
 
 	#[derive(serde::Serialize, serde::Deserialize, Default, ToSchema)]
 	pub struct CreateResponse {
 		pub msg: String,
-		pub data: Option<Bson>,
+		pub data: Option<usize>,
 	}
 
 	#[derive(serde::Serialize, serde::Deserialize, Default, ToSchema)]

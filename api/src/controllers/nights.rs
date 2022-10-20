@@ -4,7 +4,6 @@ use crate::{
 	State,
 };
 use axum::{extract::Path, http::StatusCode, Extension, Json};
-use mongodb::bson::Bson;
 
 #[utoipa::path(
     post,
@@ -25,12 +24,12 @@ pub async fn create_night(
 	match db::nights::create_night(&mut state.db_connection.get().unwrap(), payload) {
 		Ok(index) => {
 			resp.msg = "Created".to_string();
-			resp.data = Some(Bson::from(index.to_string()));
+			resp.data = Some(index);
 		},
 		Err(err) => {
 			resp.msg = err.to_string();
 			tracing::info!("{:?}", resp.msg);
-			resp.data = Some(Bson::default());
+			resp.data = None;
 			code = StatusCode::BAD_REQUEST;
 		},
 	}
@@ -72,7 +71,6 @@ pub async fn get_all_nights(
 			}
 		},
 	};
-
 
 	(code, Json(resp))
 }
@@ -161,7 +159,6 @@ pub async fn get_one_night(
         ("id" = i32,),
     )
 )]
-
 
 pub async fn delete_night(
 	Path(item_id): Path<i32>,
