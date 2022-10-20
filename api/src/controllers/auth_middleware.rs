@@ -75,7 +75,7 @@ pub async fn token_gen() -> jsonwebtoken::errors::Result<String> {
 	let my_claims = Claims {
 		aud: "pouts_os".to_string(),
 		sub: "devops@pouts_os.org".to_string(),
-		company: std::env::var("COMPANY").unwrap_or_else(|_| "Pouts_OS".to_string()),
+		company: std::env::var("COMPANY").unwrap_or_else(|_| "Pouts_OS-dev".to_string()),
 		exp: 2000000000, // May 2033
 	};
 	encode(&Header::default(), &my_claims, &EncodingKey::from_secret(&key))
