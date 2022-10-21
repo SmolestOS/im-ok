@@ -1,4 +1,5 @@
 use crate::schema::users;
+use chrono::NaiveDate;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
@@ -9,7 +10,7 @@ pub struct User {
 	pub username: String,
 	pub password: String,
 	#[schema(value_type = Date)]
-	pub created_on: chrono::NaiveDateTime,
+	pub created_on: NaiveDate,
 }
 
 #[derive(Serialize, Deserialize, ToSchema)]
@@ -24,7 +25,7 @@ pub struct NewUserDB {
 	pub username: String,
 	pub password: String,
 	#[schema(value_type = Date)]
-	pub created_on: chrono::NaiveDateTime,
+	pub created_on: NaiveDate,
 }
 
 pub mod responses {

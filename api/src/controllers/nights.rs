@@ -50,7 +50,7 @@ pub async fn get_all_nights(
 
 	match db::nights::get_all_nights(&mut state.db_connection.get().unwrap()) {
 		Ok(mut index) => {
-			resp.msg = "Created".to_string();
+			resp.msg = "Success".to_string();
 			index.sort_by(|a, b| a.created_at.cmp(&b.created_at));
 			resp.data = Some(index);
 		},
@@ -60,7 +60,7 @@ pub async fn get_all_nights(
 				_,
 			) = err
 			{
-				resp.msg = "User already exists".to_string();
+				resp.msg = err.to_string();
 				resp.data = None;
 				code = StatusCode::BAD_REQUEST;
 			} else {
@@ -88,7 +88,7 @@ pub async fn get_all_nights_with_user(
 
 	match db::nights::get_all_nights_with_user(&mut state.db_connection.get().unwrap()) {
 		Ok(mut index) => {
-			resp.msg = "Created".to_string();
+			resp.msg = "Success".to_string();
 			index.sort_by(|a, b| a.created_at.cmp(&b.created_at));
 			resp.data = Some(index);
 		},
@@ -98,7 +98,7 @@ pub async fn get_all_nights_with_user(
 				_,
 			) = err
 			{
-				resp.msg = "User already exists".to_string();
+				resp.msg = err.to_string();
 				resp.data = None;
 				code = StatusCode::BAD_REQUEST;
 			} else {

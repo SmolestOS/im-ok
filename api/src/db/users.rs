@@ -1,5 +1,5 @@
 use crate::models::user::{NewUserDB, User, UserJSONRequest};
-use chrono::{NaiveDate, NaiveTime};
+use chrono::Local;
 use diesel::prelude::*;
 
 pub fn create_user(conn: &mut PgConnection, item: UserJSONRequest) -> QueryResult<usize> {
@@ -7,10 +7,7 @@ pub fn create_user(conn: &mut PgConnection, item: UserJSONRequest) -> QueryResul
 	let user = NewUserDB {
 		username: item.username,
 		password: item.password,
-		created_on: chrono::NaiveDateTime::new(
-			NaiveDate::from_ymd(2015, 1, 1),
-			NaiveTime::from_hms(23, 23, 2),
-		),
+		created_on: Local::now().date_naive(),
 	};
 
 	diesel::insert_into(dsl::users).values::<NewUserDB>(user).execute(conn)
