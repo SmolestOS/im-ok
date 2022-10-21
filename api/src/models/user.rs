@@ -37,8 +37,14 @@ pub mod responses {
 	}
 
 	#[derive(serde::Serialize, serde::Deserialize, Default, ToSchema)]
+	pub struct LoginData {
+		pub token: String,
+		pub user: User,
+	}
+
+	#[derive(serde::Serialize, serde::Deserialize, Default, ToSchema)]
 	pub struct LoginResponse {
 		pub msg: String,
-		pub data: Option<User>,
+		pub data: Option<LoginData>,
 	}
 }

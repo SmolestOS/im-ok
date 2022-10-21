@@ -20,7 +20,6 @@ pub async fn create_night(
 	let mut resp = CreateResponse::default();
 	let mut code = StatusCode::OK;
 
-	tracing::info!("{:?}", payload);
 	match db::nights::create_night(&mut state.db_connection.get().unwrap(), payload) {
 		Ok(index) => {
 			resp.msg = "Created".to_string();

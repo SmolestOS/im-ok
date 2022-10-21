@@ -1,3 +1,4 @@
+use super::auth_middleware::token_gen;
 use crate::{
 	db,
 	models::user::{responses::*, UserJSONRequest},
@@ -59,11 +60,14 @@ pub async fn login_user(
 ) -> (StatusCode, Json<LoginResponse>) {
 	let mut resp = LoginResponse::default();
 	let mut code = StatusCode::OK;
+	let mut login_data = LoginData::default();
 
 	match db::users::get_user(&mut state.db_connection.get().unwrap(), payload) {
 		Ok(user) => {
-			resp.msg = "Logged in succesfully".to_string();
-			resp.data = Some(user);
+			resp.msg = "Logged in successfully".to_string();
+			login_data.user = user;
+			login_data.token = token_gen().await.unwrap();
+			resp.data = Some(login_data);
 		},
 		Err(err) =>
 			if let diesel::result::Error::NotFound = err {
