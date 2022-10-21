@@ -50,7 +50,7 @@ pub async fn register_user(
     path = "/users/login",
     request_body = UserJSONRequest,
     responses(
-	(status = 200, description = "Login with a user", body = [CreateResponse])
+	(status = 200, description = "Login with a user", body = [LoginResponse])
     )
 )]
 
@@ -64,7 +64,7 @@ pub async fn login_user(
 
 	match db::users::get_user(&mut state.db_connection.get().unwrap(), payload) {
 		Ok(user) => {
-			resp.msg = "Logged in successfully".to_string();
+			resp.msg = "Success".to_string();
 			login_data.user = user;
 			login_data.token = token_gen().await.unwrap();
 			resp.data = Some(login_data);
