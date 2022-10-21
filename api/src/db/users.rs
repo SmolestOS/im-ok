@@ -7,9 +7,10 @@ pub fn create_user(conn: &mut PgConnection, item: UserJSONRequest) -> QueryResul
 	let user = NewUserDB {
 		username: item.username,
 		password: item.password,
-	    created_on:chrono::NaiveDateTime::new(
-		NaiveDate::from_ymd(2015, 1, 1),
-		NaiveTime::from_hms(23, 23, 2)),
+		created_on: chrono::NaiveDateTime::new(
+			NaiveDate::from_ymd(2015, 1, 1),
+			NaiveTime::from_hms(23, 23, 2),
+		),
 	};
 
 	diesel::insert_into(dsl::users).values::<NewUserDB>(user).execute(conn)
