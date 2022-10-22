@@ -2,6 +2,7 @@ mod controllers;
 mod db;
 mod models;
 mod schema;
+mod tests;
 
 use crate::controllers::{
 	auth_middleware::auth_middleware,
@@ -39,11 +40,7 @@ impl State {
 	}
 }
 
-#[tokio::main]
-async fn main() {
-	tracing_subscriber::fmt::init();
-	dotenvy::dotenv().ok();
-
+pub async fn router() -> Router {
 	#[derive(OpenApi)]
 	#[openapi(
         paths(
@@ -96,14 +93,22 @@ async fn main() {
 		.route("/:id", patch(edit_night))
 		.layer(middleware::from_fn(auth_middleware));
 
-	let app = Router::new()
+	Router::new()
 		// NOTE: Nesting allow us to have endpoints with below
 		// the same endpoint - @charmitro
 		.merge(SwaggerUi::new("/swagger-ui/*tail").url("/api-doc/openapi.json", ApiDoc::openapi()))
 		.nest("/users", users_routes)
 		.nest("/nights", night_routes)
 		.layer(TraceLayer::new_for_http())
-		.layer(AddExtensionLayer::new(State::new(database)));
+		.layer(AddExtensionLayer::new(State::new(database)))
+}
+
+#[tokio::main]
+async fn main() {
+	tracing_subscriber::fmt::init();
+	dotenvy::dotenv().ok();
+
+	let app = router();
 
 	let addr = SocketAddr::from((
 		[0, 0, 0, 0],
@@ -113,5 +118,5 @@ async fn main() {
 			.unwrap(),
 	));
 	tracing::debug!("Listening on {}", addr);
-	axum::Server::bind(&addr).serve(app.into_make_service()).await.unwrap();
+	axum::Server::bind(&addr).serve(app.await.into_make_service()).await.unwrap();
 }
