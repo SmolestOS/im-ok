@@ -1,19 +1,30 @@
+#[allow(clippy::module_inception)]
 #[cfg(test)]
-pub mod tests {
-    use axum::http::StatusCode;
-    use axum_test_helper::TestClient;
-    use axum::{
-	routing::{delete, get, patch, post},
-	Router,
-    };
-    use crate::controllers::nights::*;
+mod tests {
+	use crate::router;
+	use api::models::user::{responses::LoginResponse, UserJSONRequest};
+	use axum_test_helper::TestClient;
 
+	#[tokio::test]
+	async fn users_login_should_work() {
+		dotenvy::dotenv().ok().unwrap();
 
-    #[tokio::test]
-    async fn test_main_router() {
-        let router = night_routes;
-        let client = TestClient::new(router);
-        let res = client.get("/").send().await;
-        assert_eq!(res.status(), StatusCode::OK);
-    }
+		let router = router().await;
+		let client = TestClient::new(router);
+		let res: LoginResponse = client
+			.post("/users/login")
+			.json(&UserJSONRequest {
+				username: "username".to_string(),
+				password: "password".to_string(),
+			})
+			.send()
+			.await
+			.json()
+			.await;
+
+		let data = res.data.as_ref().unwrap();
+
+		assert_eq!(1, data.user.id);
+		assert_eq!("username".to_string(), data.user.username);
+	}
 }
