@@ -11,19 +11,20 @@ mod tests {
 			Drunkness, NightJSONRequest,
 		},
 		user::{
-			responses::{CreateUserResponse, DeleteUserResponse, LoginResponse},
+			responses::{CreateUserResponse, LoginResponse},
 			UserJSONRequest,
 		},
 	};
 	use axum_test_helper::TestClient;
 
 	#[tokio::test]
-	async fn users_login_should_work() {
+	async fn users_controllers_should_work() {
 		dotenvy::dotenv().ok().unwrap();
 
 		let router = router().await;
 		let client = TestClient::new(router);
-		let reg_res: CreateUserResponse = client
+
+		let register_res: CreateUserResponse = client
 			.post("/users/register")
 			.json(&UserJSONRequest {
 				username: "apitest".to_string(),
@@ -47,42 +48,13 @@ mod tests {
 
 		let login_data = login_res.data.as_ref().unwrap();
 
-		assert_eq!(reg_res.data.unwrap(), login_data.user.id);
+		assert_eq!(register_res.data.unwrap(), login_data.user.id);
 		assert_eq!("apitest".to_string(), login_data.user.username);
-		let _users_res: DeleteUserResponse = client
-			.delete(format!("/users/{}", reg_res.data.unwrap()).as_str())
+
+		client
+			.delete(format!("/users/{}", register_res.data.unwrap()).as_str())
 			.send()
-			.await
-			.json()
 			.await;
-	}
-
-	#[tokio::test]
-	async fn users_register_should_work() {
-		dotenvy::dotenv().ok().unwrap();
-
-		let router = router().await;
-		let client = TestClient::new(router);
-		let res: CreateUserResponse = client
-			.post("/users/register")
-			.json(&UserJSONRequest {
-				username: "apitest".to_string(),
-				password: "apitest".to_string(),
-			})
-			.send()
-			.await
-			.json()
-			.await;
-
-		let data = res.data.as_ref().unwrap();
-		let _users_res: DeleteUserResponse = client
-			.delete(format!("/users/{}", res.data.unwrap()).as_str())
-			.send()
-			.await
-			.json()
-			.await;
-
-		assert_ne!(0, *data);
 	}
 
 	#[tokio::test]
@@ -91,6 +63,7 @@ mod tests {
 
 		let router = router().await;
 		let client = TestClient::new(router);
+
 		let login_res: LoginResponse = client
 			.post("/users/login")
 			.json(&UserJSONRequest {
@@ -119,6 +92,7 @@ mod tests {
 			.await
 			.json()
 			.await;
+
 		let nights_res: ResponseNights = client
 			.get("/nights")
 			.header("Authorization", format!("Bearer {}", token).to_string())
@@ -129,12 +103,11 @@ mod tests {
 
 		// assert_ne: Not Equal, therefore nights are not 0, as intented
 		assert_ne!(0, nights_res.data.unwrap().len());
-		let _nights_delete_res: DeleteNightResponse = client
+
+		client
 			.delete(format!("/nights/{}", nights_create_res.data.unwrap()).as_str())
 			.header("Authorization", format!("Bearer {}", token).to_string())
 			.send()
-			.await
-			.json()
 			.await;
 	}
 
@@ -144,6 +117,7 @@ mod tests {
 
 		let router = router().await;
 		let client = TestClient::new(router);
+
 		let login_res: LoginResponse = client
 			.post("/users/login")
 			.json(&UserJSONRequest {
@@ -172,6 +146,7 @@ mod tests {
 			.await
 			.json()
 			.await;
+
 		let nights_res: ResponseNight = client
 			.get("/nights/41")
 			.header("Authorization", format!("Bearer {}", token).to_string())
@@ -181,20 +156,21 @@ mod tests {
 			.await;
 
 		assert_eq!(41, nights_res.data.unwrap().id);
-		let _nights_delete_res: DeleteNightResponse = client
+
+		client
 			.delete(format!("/nights/{}", nights_create_res.data.unwrap()).as_str())
 			.header("Authorization", format!("Bearer {}", token).to_string())
 			.send()
-			.await
-			.json()
 			.await;
 	}
+
 	#[tokio::test]
 	async fn get_all_nights_with_user_should_work() {
 		dotenvy::dotenv().ok().unwrap();
 
 		let router = router().await;
 		let client = TestClient::new(router);
+
 		let login_res: LoginResponse = client
 			.post("/users/login")
 			.json(&UserJSONRequest {
@@ -233,20 +209,21 @@ mod tests {
 			.await;
 
 		assert_ne!(0, nights_res.data.unwrap().len());
-		let _nights_delete_res: DeleteNightResponse = client
+
+		client
 			.delete(format!("/nights/{}", nights_create_res.data.unwrap()).as_str())
 			.header("Authorization", format!("Bearer {}", token).to_string())
 			.send()
-			.await
-			.json()
 			.await;
 	}
+
 	#[tokio::test]
 	async fn create_night_should_work() {
 		dotenvy::dotenv().ok().unwrap();
 
 		let router = router().await;
 		let client = TestClient::new(router);
+
 		let login_res: LoginResponse = client
 			.post("/users/login")
 			.json(&UserJSONRequest {
@@ -314,6 +291,7 @@ mod tests {
 			.await
 			.json()
 			.await;
+
 		let nights_res: DeleteNightResponse = client
 			.delete(format!("/nights/{}", nights_create_res.data.unwrap()).as_str())
 			.header("Authorization", format!("Bearer {}", token).to_string())
@@ -377,12 +355,11 @@ mod tests {
 			.await;
 
 		assert_ne!(0, nights_res.data.unwrap());
-		let _nights_delete_res: DeleteNightResponse = client
+
+		client
 			.delete(format!("/nights/{}", nights_create_res.data.unwrap()).as_str())
 			.header("Authorization", format!("Bearer {}", token).to_string())
 			.send()
-			.await
-			.json()
 			.await;
 	}
 }
