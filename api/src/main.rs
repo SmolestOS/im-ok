@@ -83,8 +83,9 @@ in to be usable."),
 
 	let users_routes = Router::new()
 		.route("/register", post(register_user))
-		.route("/login", post(login_user))
-		.route("/:id", delete(delete_user));
+		.route("/login", post(login_user));
+	let user_delete_route = Router::new()
+		.route("/:id", delete(delete_user).layer(middleware::from_fn(auth_middleware)));
 
 	let night_routes = Router::new()
 		.route("/", get(get_all_nights))
@@ -100,6 +101,7 @@ in to be usable."),
 		// the same endpoint - @charmitro
 		.merge(SwaggerUi::new("/swagger-ui/*tail").url("/api-doc/openapi.json", ApiDoc::openapi()))
 		.nest("/users", users_routes)
+		.nest("/users", user_delete_route)
 		.nest("/nights", night_routes)
 		.layer(TraceLayer::new_for_http())
 		.layer(AddExtensionLayer::new(State::new(database)))

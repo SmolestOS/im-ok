@@ -46,13 +46,14 @@ mod tests {
 			.json()
 			.await;
 
-		let login_data = login_res.data.as_ref().unwrap();
+		let login_data = login_res.data.unwrap();
 
 		assert_eq!(register_res.data.unwrap(), login_data.user.id);
 		assert_eq!("apitest".to_string(), login_data.user.username);
 
 		client
 			.delete(format!("/users/{}", register_res.data.unwrap()).as_str())
+			.header("Authorization", format!("Bearer {}", login_data.token).to_string())
 			.send()
 			.await;
 	}
