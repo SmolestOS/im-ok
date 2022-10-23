@@ -47,4 +47,9 @@ pub mod responses {
 		pub msg: String,
 		pub data: Option<LoginData>,
 	}
+	#[derive(serde::Serialize, serde::Deserialize, Default, ToSchema)]
+	pub struct DeleteUserResponse {
+		pub msg: String,
+		pub data: Option<usize>,
+	}
 }

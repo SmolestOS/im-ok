@@ -106,7 +106,7 @@ pub mod responses {
 	}
 
 	#[derive(serde::Serialize, serde::Deserialize, Default, ToSchema)]
-	pub struct DeleteResponse {
+	pub struct DeleteNightResponse {
 		pub msg: String,
 		pub data: Option<usize>,
 	}

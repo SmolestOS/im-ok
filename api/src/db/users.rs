@@ -25,3 +25,7 @@ pub fn get_user(
 		.filter(dsl::username.eq(user.username).and(dsl::password.eq(user.password)))
 		.first::<User>(conn)
 }
+pub fn delete_user(conn: &mut PgConnection, item_id: i32) -> Result<usize, diesel::result::Error> {
+	use crate::schema::users::dsl;
+	diesel::delete(dsl::users.filter(dsl::id.eq(item_id))).execute(conn)
+}

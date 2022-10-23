@@ -4,7 +4,7 @@ use crate::{
 	models::user::{responses::*, UserJSONRequest},
 	State,
 };
-use axum::{http::StatusCode, Extension, Json};
+use axum::{extract::Path, http::StatusCode, Extension, Json};
 
 #[utoipa::path(
 	post,
@@ -79,6 +79,33 @@ pub async fn login_user(
 				resp.data = None;
 				code = StatusCode::NOT_FOUND;
 			},
+	}
+
+	(code, Json(resp))
+}
+
+pub async fn delete_user(
+	Path(item_id): Path<i32>,
+	Extension(state): Extension<State>,
+) -> (StatusCode, Json<DeleteUserResponse>) {
+	let mut resp = DeleteUserResponse::default();
+	let mut code = StatusCode::OK;
+
+	match db::users::delete_user(&mut state.db_connection.get().unwrap(), item_id) {
+		Ok(count) =>
+			if count.eq(&1) {
+				resp.msg = format!("Deleted User with id: {}", item_id);
+				resp.data = Some(count);
+			} else {
+				resp.msg = format!("User with id: {} not found ", item_id);
+				resp.data = None;
+				code = StatusCode::NOT_FOUND;
+			},
+		Err(err) => {
+			resp.msg = err.to_string();
+			resp.data = None;
+			code = StatusCode::NOT_FOUND;
+		},
 	}
 
 	(code, Json(resp))

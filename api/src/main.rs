@@ -11,7 +11,7 @@ use crate::controllers::{
 		__path_get_all_nights_with_user, __path_get_one_night, create_night, delete_night,
 		edit_night, get_all_nights, get_all_nights_with_user, get_one_night,
 	},
-	user::{__path_login_user, __path_register_user, login_user, register_user},
+	user::{__path_login_user, __path_register_user, delete_user, login_user, register_user},
 };
 use axum::{
 	middleware,
@@ -65,7 +65,7 @@ pub async fn router() -> Router {
                 api::models::night::responses::ResponseNights,
                 api::models::night::responses::ResponseNightsWithUser,
                 api::models::night::responses::ResponseNight,
-                api::models::night::responses::DeleteResponse,
+                api::models::night::responses::DeleteNightResponse,
                 api::models::night::responses::EditResponse,
                 api::models::night::NightJSONRequest,
                 api::models::night::NightWithUser,
@@ -74,19 +74,6 @@ pub async fn router() -> Router {
         ),
 	tags(
 	    (name = "crate", description = "The night functions all need the token string from log
-
-
-
-
-
-
-
-
-
-
-
-
-
 in to be usable."),
 	)
     )]
@@ -96,7 +83,8 @@ in to be usable."),
 
 	let users_routes = Router::new()
 		.route("/register", post(register_user))
-		.route("/login", post(login_user));
+		.route("/login", post(login_user))
+		.route("/:id", delete(delete_user));
 
 	let night_routes = Router::new()
 		.route("/", get(get_all_nights))
