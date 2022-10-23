@@ -50,7 +50,7 @@ jobs:
           COMPANY: ${{ secrets.COMPANY }}
         with:
           command: test
-          args: -bin api
+          args: --bin api
 
   fmt:
     name: Rustfmt
