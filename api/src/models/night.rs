@@ -82,7 +82,7 @@ pub mod responses {
 	use super::*;
 
 	#[derive(serde::Serialize, serde::Deserialize, Default, ToSchema)]
-	pub struct CreateResponse {
+	pub struct CreateNightResponse {
 		pub msg: String,
 		pub data: Option<usize>,
 	}

@@ -57,11 +57,11 @@ pub async fn router() -> Router {
 	    schemas(
 		User,
 		api::models::user::responses::LoginResponse,
-                api::models::user::responses::CreateResponse,
+                api::models::user::responses::CreateUserResponse,
                 api::models::user::UserJSONRequest,
                 api::models::user::responses::LoginData,
                 Night,
-                api::models::night::responses::CreateResponse,
+                api::models::night::responses::CreateNightResponse,
                 api::models::night::responses::ResponseNights,
                 api::models::night::responses::ResponseNightsWithUser,
                 api::models::night::responses::ResponseNight,
@@ -73,7 +73,21 @@ pub async fn router() -> Router {
 	    )
         ),
 	tags(
-	    (name = "crate", description = "The night functions all need the token string from login to be usable."),
+	    (name = "crate", description = "The night functions all need the token string from log
+
+
+
+
+
+
+
+
+
+
+
+
+
+in to be usable."),
 	)
     )]
 	struct ApiDoc;

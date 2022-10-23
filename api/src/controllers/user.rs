@@ -17,8 +17,8 @@ use axum::{http::StatusCode, Extension, Json};
 pub async fn register_user(
 	Json(payload): Json<UserJSONRequest>,
 	Extension(state): Extension<State>,
-) -> (StatusCode, Json<CreateResponse>) {
-	let mut resp = CreateResponse::default();
+) -> (StatusCode, Json<CreateUserResponse>) {
+	let mut resp = CreateUserResponse::default();
 	let mut code = StatusCode::OK;
 
 	match db::users::create_user(
