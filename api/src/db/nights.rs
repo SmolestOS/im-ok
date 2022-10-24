@@ -2,7 +2,7 @@ use crate::models::night::{NewNightDB, Night, NightJSONRequest, NightWithUser};
 use chrono::Local;
 use diesel::prelude::*;
 
-pub fn create_night(conn: &mut PgConnection, item: NightJSONRequest) -> QueryResult<usize> {
+pub fn create_night(conn: &mut PgConnection, item: NightJSONRequest) -> QueryResult<i32> {
 	use crate::schema::nights::dsl;
 	let night = NewNightDB {
 		user_id: item.user_id,
@@ -15,7 +15,10 @@ pub fn create_night(conn: &mut PgConnection, item: NightJSONRequest) -> QueryRes
 		created_at: Local::now().date_naive(),
 	};
 
-	diesel::insert_into(dsl::nights).values::<NewNightDB>(night).execute(conn)
+	diesel::insert_into(dsl::nights)
+		.values::<NewNightDB>(night)
+		.returning(dsl::id)
+		.get_result(conn)
 }
 
 pub fn get_all_nights(conn: &mut PgConnection) -> Result<Vec<Night>, diesel::result::Error> {

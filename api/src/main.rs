@@ -2,6 +2,7 @@ mod controllers;
 mod db;
 mod models;
 mod schema;
+mod tests;
 
 use crate::controllers::{
 	auth_middleware::auth_middleware,
@@ -10,7 +11,7 @@ use crate::controllers::{
 		__path_get_all_nights_with_user, __path_get_one_night, create_night, delete_night,
 		edit_night, get_all_nights, get_all_nights_with_user, get_one_night,
 	},
-	user::{__path_login_user, __path_register_user, login_user, register_user},
+	user::{__path_login_user, __path_register_user, delete_user, login_user, register_user},
 };
 use axum::{
 	middleware,
@@ -39,11 +40,7 @@ impl State {
 	}
 }
 
-#[tokio::main]
-async fn main() {
-	tracing_subscriber::fmt::init();
-	dotenvy::dotenv().ok();
-
+pub async fn router() -> Router {
 	#[derive(OpenApi)]
 	#[openapi(
         paths(
@@ -60,15 +57,15 @@ async fn main() {
 	    schemas(
 		User,
 		api::models::user::responses::LoginResponse,
-                api::models::user::responses::CreateResponse,
+                api::models::user::responses::CreateUserResponse,
                 api::models::user::UserJSONRequest,
                 api::models::user::responses::LoginData,
                 Night,
-                api::models::night::responses::CreateResponse,
+                api::models::night::responses::CreateNightResponse,
                 api::models::night::responses::ResponseNights,
                 api::models::night::responses::ResponseNightsWithUser,
                 api::models::night::responses::ResponseNight,
-                api::models::night::responses::DeleteResponse,
+                api::models::night::responses::DeleteNightResponse,
                 api::models::night::responses::EditResponse,
                 api::models::night::NightJSONRequest,
                 api::models::night::NightWithUser,
@@ -76,7 +73,8 @@ async fn main() {
 	    )
         ),
 	tags(
-	    (name = "crate", description = "The night functions all need the token string from login to be usable."),
+	    (name = "crate", description = "The night functions all need the token string from log
+in to be usable."),
 	)
     )]
 	struct ApiDoc;
@@ -86,6 +84,8 @@ async fn main() {
 	let users_routes = Router::new()
 		.route("/register", post(register_user))
 		.route("/login", post(login_user));
+	let user_delete_route = Router::new()
+		.route("/:id", delete(delete_user).layer(middleware::from_fn(auth_middleware)));
 
 	let night_routes = Router::new()
 		.route("/", get(get_all_nights))
@@ -96,14 +96,23 @@ async fn main() {
 		.route("/:id", patch(edit_night))
 		.layer(middleware::from_fn(auth_middleware));
 
-	let app = Router::new()
+	Router::new()
 		// NOTE: Nesting allow us to have endpoints with below
 		// the same endpoint - @charmitro
 		.merge(SwaggerUi::new("/swagger-ui/*tail").url("/api-doc/openapi.json", ApiDoc::openapi()))
 		.nest("/users", users_routes)
+		.nest("/users", user_delete_route)
 		.nest("/nights", night_routes)
 		.layer(TraceLayer::new_for_http())
-		.layer(AddExtensionLayer::new(State::new(database)));
+		.layer(AddExtensionLayer::new(State::new(database)))
+}
+
+#[tokio::main]
+async fn main() {
+	tracing_subscriber::fmt::init();
+	dotenvy::dotenv().ok();
+
+	let app = router();
 
 	let addr = SocketAddr::from((
 		[0, 0, 0, 0],
@@ -113,5 +122,5 @@ async fn main() {
 			.unwrap(),
 	));
 	tracing::debug!("Listening on {}", addr);
-	axum::Server::bind(&addr).serve(app.into_make_service()).await.unwrap();
+	axum::Server::bind(&addr).serve(app.await.into_make_service()).await.unwrap();
 }

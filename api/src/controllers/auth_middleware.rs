@@ -6,6 +6,7 @@ use axum::{
 use jsonwebtoken::{
 	decode, encode, errors::ErrorKind, Algorithm, DecodingKey, EncodingKey, Header, Validation,
 };
+
 use serde::{Deserialize, Serialize};
 
 pub async fn auth_middleware<B>(req: Request<B>, next: Next<B>) -> Result<Response, StatusCode> {

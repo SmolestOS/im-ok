@@ -16,8 +16,8 @@ use axum::{extract::Path, http::StatusCode, Extension, Json};
 pub async fn create_night(
 	Json(payload): Json<NightJSONRequest>,
 	Extension(state): Extension<State>,
-) -> (StatusCode, Json<CreateResponse>) {
-	let mut resp = CreateResponse::default();
+) -> (StatusCode, Json<CreateNightResponse>) {
+	let mut resp = CreateNightResponse::default();
 	let mut code = StatusCode::OK;
 
 	match db::nights::create_night(&mut state.db_connection.get().unwrap(), payload) {
@@ -162,8 +162,8 @@ pub async fn get_one_night(
 pub async fn delete_night(
 	Path(item_id): Path<i32>,
 	Extension(state): Extension<State>,
-) -> (StatusCode, Json<DeleteResponse>) {
-	let mut resp = DeleteResponse::default();
+) -> (StatusCode, Json<DeleteNightResponse>) {
+	let mut resp = DeleteNightResponse::default();
 	let mut code = StatusCode::OK;
 
 	match db::nights::delete_night(&mut state.db_connection.get().unwrap(), item_id) {
@@ -185,6 +185,7 @@ pub async fn delete_night(
 
 	(code, Json(resp))
 }
+
 #[utoipa::path(
     patch,
     path = "/nights/{id}",

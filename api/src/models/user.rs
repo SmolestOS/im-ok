@@ -31,9 +31,9 @@ pub mod responses {
 	use super::*;
 
 	#[derive(serde::Serialize, serde::Deserialize, Default, ToSchema)]
-	pub struct CreateResponse {
+	pub struct CreateUserResponse {
 		pub msg: String,
-		pub data: Option<usize>,
+		pub data: Option<i32>,
 	}
 
 	#[derive(serde::Serialize, serde::Deserialize, Default, ToSchema)]
@@ -46,5 +46,10 @@ pub mod responses {
 	pub struct LoginResponse {
 		pub msg: String,
 		pub data: Option<LoginData>,
+	}
+	#[derive(serde::Serialize, serde::Deserialize, Default, ToSchema)]
+	pub struct DeleteUserResponse {
+		pub msg: String,
+		pub data: Option<usize>,
 	}
 }

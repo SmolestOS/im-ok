@@ -1,7 +1,7 @@
 use crate::models::user::{NewUserDB, User, UserJSONRequest};
 use diesel::prelude::*;
 
-pub fn create_user(conn: &mut PgConnection, item: UserJSONRequest) -> QueryResult<usize> {
+pub fn create_user(conn: &mut PgConnection, item: UserJSONRequest) -> QueryResult<i32> {
 	use crate::schema::users::dsl;
 	let user = NewUserDB {
 		username: item.username,
@@ -9,7 +9,10 @@ pub fn create_user(conn: &mut PgConnection, item: UserJSONRequest) -> QueryResul
 		created_on: chrono::offset::Local::now().naive_local(),
 	};
 
-	diesel::insert_into(dsl::users).values::<NewUserDB>(user).execute(conn)
+	diesel::insert_into(dsl::users)
+		.values::<NewUserDB>(user)
+		.returning(dsl::id)
+		.get_result(conn)
 }
 
 pub fn get_user(
@@ -21,4 +24,8 @@ pub fn get_user(
 	dsl::users
 		.filter(dsl::username.eq(user.username).and(dsl::password.eq(user.password)))
 		.first::<User>(conn)
+}
+pub fn delete_user(conn: &mut PgConnection, item_id: i32) -> Result<usize, diesel::result::Error> {
+	use crate::schema::users::dsl;
+	diesel::delete(dsl::users.filter(dsl::id.eq(item_id))).execute(conn)
 }

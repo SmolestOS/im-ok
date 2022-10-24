@@ -22,3 +22,5 @@ tower = "0.4.13"
 jsonwebtoken = "8"
 utoipa = { version = "2", features = ["axum_extras", "chrono"] }
 utoipa-swagger-ui = { version = "2", features = ["axum"] }
+[dev-dependencies]
+axum-test-helper = "0.1.1"
