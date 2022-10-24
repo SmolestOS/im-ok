@@ -1,4 +1,12 @@
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+      - development
+  pull_request:
+    branches:
+      - master
+      - development
 
 name: CI
 
@@ -35,10 +43,14 @@ jobs:
           toolchain: stable
           override: true
       - run: sudo apt-get install libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libspeechd-dev libxkbcommon-dev libssl-dev
+      - run: |
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}
+          KEY=${{ secrets.KEY }}
+          COMPANY= ${{ secrets.COMPANY }}" > .env
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --lib
+          args: --bin api
 
   fmt:
     name: Rustfmt
