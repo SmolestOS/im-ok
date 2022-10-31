@@ -10,7 +10,7 @@ use axum::{extract::Path, http::StatusCode, Extension, Json};
     path = "/nights/new",
     request_body = NightJSONRequest,
     responses(
-	(status = 200, description = "Creates a new night entry for the current user", body = [CreateResponse])
+	(status = 200, description = "Creates a new night entry for the current user", body = [CreateNightResponse])
     )
 )]
 pub async fn create_night(
@@ -152,7 +152,7 @@ pub async fn get_one_night(
     delete,
     path = "/nights/{id}",
     responses(
-	(status = 200, description = "Delete a specific night using the corresponding id", body = [DeleteResponse])
+	(status = 200, description = "Delete a specific night using the corresponding id", body = [DeleteNightResponse])
     ),
     params(
         ("id" = i32,),
