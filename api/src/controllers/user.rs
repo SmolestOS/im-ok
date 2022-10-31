@@ -11,7 +11,7 @@ use axum::{extract::Path, http::StatusCode, Extension, Json};
 	path = "/users/register",
 	request_body = UserJSONRequest,
 	responses(
-		(status = 200, description = "Creates/Registers a new user", body = [CreateResponse])
+		(status = 200, description = "Creates/Registers a new user", body = [CreateUserResponse])
 	)
 )]
 pub async fn register_user(
