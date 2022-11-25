@@ -48,6 +48,21 @@ pub fn get_all_nights_with_user(
 		.load::<NightWithUser>(conn)
 }
 
+pub fn get_nights_of_user(
+	user_id: i32,
+	conn: &mut PgConnection,
+	limit: Option<i64>,
+	offset: Option<i64>,
+) -> Result<Vec<Night>, diesel::result::Error> {
+	use crate::schema::nights::dsl;
+
+	dsl::nights
+		.filter(dsl::user_id.eq(user_id))
+		.limit(limit.unwrap_or(i64::MAX))
+		.offset(offset.unwrap_or(0))
+		.load::<Night>(conn)
+}
+
 pub fn get_night(conn: &mut PgConnection, item_id: i32) -> Result<Night, diesel::result::Error> {
 	use crate::schema::nights::dsl;
 	dsl::nights.filter(dsl::id.eq(item_id)).first::<Night>(conn)

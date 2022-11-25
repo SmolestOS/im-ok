@@ -8,8 +8,9 @@ use crate::controllers::{
 	auth_middleware::auth_middleware,
 	nights::{
 		__path_create_night, __path_delete_night, __path_edit_night, __path_get_all_nights,
-		__path_get_all_nights_with_user, __path_get_one_night, create_night, delete_night,
-		edit_night, get_all_nights, get_all_nights_with_user, get_one_night,
+		__path_get_all_nights_of_user, __path_get_all_nights_with_user, __path_get_one_night,
+		create_night, delete_night, edit_night, get_all_nights, get_all_nights_of_user,
+		get_all_nights_with_user, get_one_night,
 	},
 	user::{__path_login_user, __path_register_user, delete_user, login_user, register_user},
 };
@@ -47,6 +48,7 @@ pub async fn router() -> Router {
             create_night,
             get_all_nights,
             get_all_nights_with_user,
+            get_all_nights_of_user,
             get_one_night,
             delete_night,
             edit_night,
@@ -70,6 +72,7 @@ pub async fn router() -> Router {
                 api::models::night::NightJSONRequest,
                 api::models::night::NightWithUser,
                 api::models::night::Drunkness,
+                api::models::night::GetNightsQuery
 	    )
         ),
 	tags(
@@ -94,6 +97,7 @@ in to be usable."),
 		.route("/:id", get(get_one_night))
 		.route("/:id", delete(delete_night))
 		.route("/:id", patch(edit_night))
+		.route("/all", get(get_all_nights_of_user))
 		.layer(middleware::from_fn(auth_middleware));
 
 	Router::new()
