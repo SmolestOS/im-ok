@@ -95,8 +95,11 @@ pub async fn get_all_nights(
 				},
 			};
 		},
-		_ => {
-			match db::nights::get_all_nights(&mut state.db_connection.get().unwrap()) {
+		None => {
+			match db::nights::get_all_nights(&mut state.db_connection.get().unwrap(),
+			limit,
+			offset,
+		) {
 				Ok(index) =>
 					if index.is_empty() {
 						resp.msg = "No nights found".to_string();

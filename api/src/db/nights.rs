@@ -21,10 +21,16 @@ pub fn create_night(conn: &mut PgConnection, item: NightJSONRequest) -> QueryRes
 		.get_result(conn)
 }
 
-pub fn get_all_nights(conn: &mut PgConnection) -> Result<Vec<Night>, diesel::result::Error> {
+pub fn get_all_nights(conn: &mut PgConnection,
+	limit: Option<i64>,
+	offset: Option<i64>
+) -> Result<Vec<Night>, diesel::result::Error> {
 	use crate::schema::nights::dsl;
 
-	dsl::nights.load::<Night>(conn)
+	dsl::nights
+	.limit(limit.unwrap_or(i64::MAX))
+	.offset(offset.unwrap_or(0))
+	.load::<Night>(conn)
 }
 
 pub fn get_all_nights_with_user(
