@@ -79,7 +79,7 @@ pub struct NightWithUser {
 
 #[derive(Deserialize, ToSchema)]
 pub struct GetNightsQuery {
-	pub user_id: i32,
+	pub user_id: Option<i32>,
 	pub offset: Option<i64>,
 	pub limit: Option<i64>,
 }
