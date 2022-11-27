@@ -1,18 +1,8 @@
 [workspace]
 members = [
-    "client",
     "api",
+    # "client" // Deprecated
 ]
 
 [profile.release]
 opt-level = 2 # fast and small wasm
-
-[patch.crates-io]
-
-# If you want to use the bleeding edge version of egui and eframe:
-# egui = { git = "https://github.com/emilk/egui", branch = "master" }
-# eframe = { git = "https://github.com/emilk/egui", branch = "master" }
-
-# If you fork https://github.com/emilk/egui you can test with:
-# egui = { path = "../egui/crates/egui" }
-# eframe = { path = "../egui/crates/eframe" }
