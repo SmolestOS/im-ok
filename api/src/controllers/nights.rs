@@ -39,6 +39,7 @@ pub async fn create_night(
 
 	(code, Json(resp))
 }
+
 #[utoipa::path(
     get,
     path = "/nights",
@@ -176,7 +177,6 @@ pub async fn get_all_nights_with_user(
         ("id" = i32,),
         )
 )]
-
 pub async fn get_one_night(
 	Path(item_id): Path<i32>,
 	Extension(state): Extension<State>,
@@ -214,7 +214,6 @@ pub async fn get_one_night(
         ("id" = i32,),
     )
 )]
-
 pub async fn delete_night(
 	Path(item_id): Path<i32>,
 	Extension(state): Extension<State>,
@@ -253,7 +252,6 @@ pub async fn delete_night(
         ("id" = i32,),
     )
 )]
-
 pub async fn edit_night(
 	Path(item_id): Path<i32>,
 	Json(payload): Json<NightJSONRequest>,
