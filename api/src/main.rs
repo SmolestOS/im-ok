@@ -70,6 +70,7 @@ pub async fn router() -> Router {
                 api::models::night::NightJSONRequest,
                 api::models::night::NightWithUser,
                 api::models::night::Drunkness,
+                api::models::night::GetNightsQuery
 	    )
         ),
 	tags(

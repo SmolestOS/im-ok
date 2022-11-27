@@ -1,9 +1,13 @@
 use crate::{
 	db,
-	models::night::{responses::*, NightJSONRequest},
+	models::night::{responses::*, GetNightsQuery, NightJSONRequest},
 	State,
 };
-use axum::{extract::Path, http::StatusCode, Extension, Json};
+use axum::{
+	extract::{Path, Query},
+	http::StatusCode,
+	Extension, Json,
+};
 
 #[utoipa::path(
     post,
@@ -35,44 +39,96 @@ pub async fn create_night(
 
 	(code, Json(resp))
 }
+
 #[utoipa::path(
     get,
-    path = "/nights/",
+    path = "/nights",
+    params(
+        ("user_id" = i32, Query,  description = "The id of the user"),
+        ("offset" = i64, Query, description = "The default value of offset is 0 if none is given"),
+        ("limit" = i64, Query, description = "The default value of limit is i64::MAX if none is given")
+    ),
     responses(
-	(status = 200, description = "Get all night entries", body = [ResponseNights])
+	(status = 200, description = "Fetches all night entries. If a query parameter is provided for user_id then fetches all nights of a specific user", body = [ResponseNights] )
     )
 )]
 pub async fn get_all_nights(
+	query_params: Query<GetNightsQuery>,
 	Extension(state): Extension<State>,
 ) -> (StatusCode, Json<ResponseNights>) {
 	let mut resp = ResponseNights::default();
 	let mut code = StatusCode::OK;
+	let user_id = query_params.0.user_id;
+	let limit = query_params.0.limit;
+	let offset = query_params.0.offset;
 
-	match db::nights::get_all_nights(&mut state.db_connection.get().unwrap()) {
-		Ok(mut index) => {
-			resp.msg = "Success".to_string();
-			index.sort_by(|a, b| a.created_at.cmp(&b.created_at));
-			resp.data = Some(index);
+	match user_id {
+		Some(id) => {
+			match db::nights::get_nights_of_user(
+				id,
+				&mut state.db_connection.get().unwrap(),
+				limit,
+				offset,
+			) {
+				Ok(index) =>
+					if index.is_empty() {
+						resp.msg = "No nights found".to_string();
+						resp.data = None;
+						code = StatusCode::OK;
+					} else {
+						resp.msg = "Success".to_string();
+						resp.data = Some(index);
+					},
+				Err(err) => {
+					if let diesel::result::Error::DatabaseError(
+						diesel::result::DatabaseErrorKind::UniqueViolation,
+						_,
+					) = err
+					{
+						resp.msg = err.to_string();
+						resp.data = None;
+						code = StatusCode::BAD_REQUEST;
+					} else {
+						resp.msg = err.to_string();
+						resp.data = None;
+						code = StatusCode::BAD_REQUEST;
+					}
+				},
+			};
 		},
-		Err(err) => {
-			if let diesel::result::Error::DatabaseError(
-				diesel::result::DatabaseErrorKind::UniqueViolation,
-				_,
-			) = err
+		None => {
+			match db::nights::get_all_nights(&mut state.db_connection.get().unwrap(), limit, offset)
 			{
-				resp.msg = err.to_string();
-				resp.data = None;
-				code = StatusCode::BAD_REQUEST;
-			} else {
-				resp.msg = err.to_string();
-				resp.data = None;
-				code = StatusCode::BAD_REQUEST;
-			}
+				Ok(index) =>
+					if index.is_empty() {
+						resp.msg = "No nights found".to_string();
+						resp.data = None;
+						code = StatusCode::OK;
+					} else {
+						resp.msg = "Success".to_string();
+						resp.data = Some(index);
+					},
+				Err(err) => {
+					if let diesel::result::Error::DatabaseError(
+						diesel::result::DatabaseErrorKind::UniqueViolation,
+						_,
+					) = err
+					{
+						resp.msg = err.to_string();
+						resp.data = None;
+						code = StatusCode::BAD_REQUEST;
+					} else {
+						resp.msg = err.to_string();
+						resp.data = None;
+						code = StatusCode::BAD_REQUEST;
+					}
+				},
+			};
 		},
 	};
-
 	(code, Json(resp))
 }
+
 #[utoipa::path(
     get,
     path = "/nights/with_users",
@@ -110,6 +166,7 @@ pub async fn get_all_nights_with_user(
 	};
 	(code, Json(resp))
 }
+
 #[utoipa::path(
     get,
     path = "/nights/{id}",
@@ -120,7 +177,6 @@ pub async fn get_all_nights_with_user(
         ("id" = i32,),
         )
 )]
-
 pub async fn get_one_night(
 	Path(item_id): Path<i32>,
 	Extension(state): Extension<State>,
@@ -158,7 +214,6 @@ pub async fn get_one_night(
         ("id" = i32,),
     )
 )]
-
 pub async fn delete_night(
 	Path(item_id): Path<i32>,
 	Extension(state): Extension<State>,
@@ -197,7 +252,6 @@ pub async fn delete_night(
         ("id" = i32,),
     )
 )]
-
 pub async fn edit_night(
 	Path(item_id): Path<i32>,
 	Json(payload): Json<NightJSONRequest>,

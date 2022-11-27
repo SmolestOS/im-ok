@@ -3,7 +3,6 @@ use chrono::NaiveDate;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
-
 /// An enum to track the level of Drunkness (0 - 5)
 #[derive(
 	Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, diesel_derive_enum::DbEnum, ToSchema,
@@ -76,6 +75,13 @@ pub struct NightWithUser {
 	pub description: String,
 	#[schema(value_type = Date)]
 	pub created_at: NaiveDate,
+}
+
+#[derive(Deserialize, ToSchema)]
+pub struct GetNightsQuery {
+	pub user_id: Option<i32>,
+	pub offset: Option<i64>,
+	pub limit: Option<i64>,
 }
 
 pub mod responses {
